@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { DESKTOP, gsap, MOTION, ScrollTrigger, useGSAP } from "@/lib/gsap";
-import { BASE, ROUNDS } from "@/lib/data";
+import { ABOUT, BASE, ROUNDS } from "@/lib/data";
 import RoundCard from "./RoundCard";
 import s from "./Rounds.module.css";
 
@@ -113,6 +113,11 @@ export default function Rounds({ photos }: { photos: Record<string, string | nul
           </h2>
           <p>Week 1 ถึง 16 แต่ละสนามมีหัวข้อที่เรียน บันทึกของทีม และรูปจากวันนั้น</p>
         </header>
+        <div className={s.about}>
+          {ABOUT.slice(1).map((p) => (
+            <p key={p}>{p}</p>
+          ))}
+        </div>
         <div className={s.layout}>
           <aside className={s.rail} aria-hidden="true">
             <div className={s.railInner}>

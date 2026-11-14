@@ -2,7 +2,7 @@
 
 import { useRef, type CSSProperties, type ReactNode } from "react";
 import { gsap, MOTION, useGSAP } from "@/lib/gsap";
-import { FIN_COUNT, ROUNDS } from "@/lib/data";
+import { ABOUT, FIN_COUNT, ROUNDS } from "@/lib/data";
 import PhotoSlot from "./PhotoSlot";
 import s from "./Hero.module.css";
 
@@ -169,7 +169,7 @@ export default function Hero({ cover, children }: { cover: string | null; childr
                 สนามที่จบแล้ว
               </p>
               <p className={s.lead} data-fade>
-                บันทึกการเรียนวิชา CPE102 ของทีม A10 มจธ. ตลอดภาคเรียน เล่าเป็นฤดูกาลแข่ง {total} สนาม ตั้งแต่ 6 ส.ค. ถึง 20 พ.ย. 2026
+                {ABOUT[0]} บันทึกของทีม A10 เล่า {total} สัปดาห์เป็นฤดูกาลแข่ง {total} สนาม ตั้งแต่ {ROUNDS[0].date} ถึง {ROUNDS[total - 1].date} 2026
               </p>
             </div>
           </div>

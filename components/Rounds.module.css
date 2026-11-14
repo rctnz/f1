@@ -1,5 +1,7 @@
 .rounds { padding-block: clamp(64px, 8vw, 112px) 0; background: var(--p-bg); }
 
+.about { display: grid; gap: 12px 40px; max-width: 980px; margin: -12px 0 clamp(40px, 5vw, 64px); color: #d6dade; font-size: 1.05rem; }
+@media (min-width: 900px) { .about { grid-template-columns: 1fr 1fr; } }
 .layout { display: block; }
 .rail { display: none; }
 @media (min-width: 1024px) {
