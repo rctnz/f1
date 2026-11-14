@@ -36,7 +36,7 @@ export default function Page() {
         <Header />
       </Hero>
       <main id="main">
-        <Calendar />
+        <Calendar photos={photos} />
         <Handover from="poster" to="tele" />
         <TimingSheet />
         <Handover from="tele" to="poster" />

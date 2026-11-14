@@ -1,6 +1,9 @@
 // Photos added in the browser live in IndexedDB on this machine only.
 const DB = "a10-grand-prix";
 const STORE = "photos";
+/** fired on window when a photo is added or removed, so other views (the calendar) can refresh */
+export const PHOTO_EVENT = "a10-photo";
+const notify = () => window.dispatchEvent(new Event(PHOTO_EVENT));
 
 let dbp: Promise<IDBDatabase> | null = null;
 function db(): Promise<IDBDatabase> {
@@ -32,8 +35,8 @@ function run<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<
 }
 
 export const getPhoto = (id: string) => run<Blob>("readonly", (s) => s.get(id)).catch(() => undefined);
-export const setPhoto = (id: string, blob: Blob) => run("readwrite", (s) => s.put(blob, id)).catch(() => undefined);
-export const deletePhoto = (id: string) => run("readwrite", (s) => s.delete(id)).catch(() => undefined);
+export const setPhoto = (id: string, blob: Blob) => run("readwrite", (s) => s.put(blob, id)).then(notify, () => undefined);
+export const deletePhoto = (id: string) => run("readwrite", (s) => s.delete(id)).then(notify, () => undefined);
 
 /** downscale to at most 1600px on the long side so the store stays light */
 export async function shrink(file: File): Promise<Blob> {
