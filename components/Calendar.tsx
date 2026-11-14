@@ -10,6 +10,7 @@ import s from "./Calendar.module.css";
 const SMALL = `${MOTION} and (max-width: 1023.98px), ${MOTION} and (max-height: 699.98px)`;
 const BASE_W = 280; // card width at rest on the pinned row
 const OPEN_W = 560; // the card the race is at opens to this width
+const ZOOM = 0.4; // its text grows by this much, as a scale, never a reflow
 
 /** week photos: files from public/photos (server) first, then photos added in the browser */
 function useWeekPhotos(server: Record<string, string | null>) {
@@ -58,6 +59,8 @@ export default function Calendar({ photos }: { photos: Record<string, string | n
         const track = q("[data-track]")[0];
         const row = q("[data-row]")[0];
         const items = q("[data-item]");
+        const texts = items.map((el) => el.querySelector("[data-text]"));
+        const nums = items.map((el) => el.querySelector("[data-num]"));
         const n = items.length;
         // tent weights add up to 1 at every point, so the row's total width never changes while cards open
         const setOpen = (p: number) => {
@@ -65,7 +68,9 @@ export default function Calendar({ photos }: { photos: Record<string, string | n
           items.forEach((el, i) => {
             const t = Math.max(0, 1 - Math.abs(i - at));
             gsap.set(el, { width: BASE_W + (OPEN_W - BASE_W) * t });
-            el.toggleAttribute("data-open", t > 0.5);
+            // the words keep their layout and zoom with the card instead of reflowing
+            gsap.set(texts[i], { scale: 1 + ZOOM * t });
+            if (nums[i]) gsap.set(nums[i], { scale: 1 + ZOOM * t });
           });
         };
         setOpen(0);
@@ -95,7 +100,7 @@ export default function Calendar({ photos }: { photos: Record<string, string | n
         return () => {
           root.removeEventListener("focusin", onFocus);
           gsap.set(items, { clearProps: "width" });
-          items.forEach((el) => el.removeAttribute("data-open"));
+          gsap.set([...texts, ...nums].filter(Boolean), { clearProps: "transform" });
         };
       });
 
@@ -133,11 +138,13 @@ export default function Calendar({ photos }: { photos: Record<string, string | n
                     <img className={s.img} src={src} alt="" loading="lazy" decoding="async" />
                   ) : (
                     <span className={s.empty} aria-hidden="true">
-                      {r.nn}
+                      <span className={s.emptyNum} data-num>
+                        {r.nn}
+                      </span>
                     </span>
                   )}
                   <span className={s.shade} aria-hidden="true" />
-                  <span className={s.text}>
+                  <span className={s.text} data-text>
                     <span className={s.rnd}>ROUND {r.nn}</span>
                     <span className={s.name}>{titleOf(r)}</span>
                     <span className={s.date}>{r.date} 2026</span>
