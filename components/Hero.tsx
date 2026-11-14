@@ -4,6 +4,8 @@ import { useRef, type CSSProperties, type ReactNode } from "react";
 import { gsap, MOTION, useGSAP } from "@/lib/gsap";
 import { ABOUT, FIN_COUNT, ROUNDS } from "@/lib/data";
 import PhotoSlot from "./PhotoSlot";
+import CarScene from "./CarScene";
+import { carState } from "@/lib/carState";
 import s from "./Hero.module.css";
 
 const LINES = ["ENGINEERING", "EXPLORATION", "GRAND PRIX"];
@@ -66,20 +68,38 @@ export default function Hero({ cover, children }: { cover: string | null; childr
           scrollTrigger: {
             trigger: root,
             start: "top top",
-            end: () => "+=" + Math.round(window.innerHeight * 1.1),
+            end: () => "+=" + Math.round(window.innerHeight * 3.4),
             pin: true,
             scrub: 0.4,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
         });
+        // clear the stage: the cover row steps back while the car has the screen
+        start.to(q("[data-row]"), { autoAlpha: 0, duration: 0.12 }, 0);
+        // desktop: the headline steps into the top-left corner so the car has the right of the screen
+        const titleScale = () => (window.innerWidth >= 1024 ? 0.55 : 1);
+        start.to(q("[data-title]"), { scale: titleScale, transformOrigin: "0% 0%", duration: 0.15, ease: "power2.inOut" }, 0);
         units.forEach((u, i) => start.to(u.querySelectorAll("[data-light]"), { opacity: 1, duration: 0.12 }, i * 0.2));
         start.to(q("[data-hint]"), { opacity: 0, duration: 0.1 }, 0.95);
         start.to({}, { duration: 0.3 }); // all five lit, hold
         start.to(lit, { opacity: 0, duration: 0.04 }, ">");
         start.fromTo(q("[data-go]"), { opacity: 0 }, { opacity: 1, duration: 0.06 }, "<");
-        start.fromTo(q("[data-slot='cover']"), { xPercent: 0 }, { xPercent: -3, duration: 0.25 }, "<");
-        start.to({}, { duration: 0.15 });
+        // lights out: the car launches off to the right
+        start.fromTo(carState, { drive: 0 }, { drive: 1, duration: 0.4 }, "<");
+        start.to({}, { duration: 0.08 });
+        // the camera swings to the side and the car rolls back in
+        start.fromTo(carState, { side: 0 }, { side: 1, duration: 0.5 }, ">");
+        start.to(q("[data-go]"), { opacity: 0, duration: 0.08 }, "<");
+        start.fromTo(q("[data-spin-hint]"), { opacity: 0 }, { opacity: 1, duration: 0.1 }, "<0.3");
+        // keep scrolling to turn it round once
+        start.fromTo(carState, { spin: 0 }, { spin: 1, duration: 1.3 }, ">");
+        start.to(q("[data-spin-hint]"), { opacity: 0, duration: 0.1 }, ">-0.15");
+        // hand back: the row returns, the car dims behind it
+        start.to(q("[data-row]"), { autoAlpha: 1, duration: 0.18 }, ">-0.05");
+        start.to(q("[data-stage-fade]"), { opacity: 0.25, duration: 0.18 }, "<");
+        start.to(q("[data-title]"), { scale: 1, duration: 0.18, ease: "power2.inOut" }, "<");
+        start.to({}, { duration: 0.1 });
 
         // after the start: parallax while the hero scrolls away
         const hero = q("[data-hero]")[0];
@@ -102,6 +122,7 @@ export default function Hero({ cover, children }: { cover: string | null; childr
 
   return (
     <div className={s.start} id="top" ref={ref}>
+      <CarScene />
       {children}
       <section className={s.hero} aria-labelledby="hero-title" data-hero>
         <div className={s.speed} aria-hidden="true">
@@ -134,11 +155,14 @@ export default function Hero({ cover, children }: { cover: string | null; childr
                 <span className={s.go} data-go>
                   LIGHTS OUT
                 </span>
+                <span className={s.go} data-spin-hint>
+                  เลื่อนต่อเพื่อหมุนรถ
+                </span>
               </p>
             </div>
           </div>
 
-          <h1 className={s.title} id="hero-title">
+          <h1 className={s.title} id="hero-title" data-title>
             {LINES.map((line, i) => (
               <span key={line} className={`${s.line} ${i === 2 ? s.red : ""}`} data-hl>
                 <span className={s.lineIn} data-hl-in>
@@ -148,7 +172,7 @@ export default function Hero({ cover, children }: { cover: string | null; childr
             ))}
           </h1>
 
-          <div className={s.row}>
+          <div className={s.row} data-row>
             <PhotoSlot id="cover" src={cover} label="ปก 16:9" alt="รูปปกทีม A10" shape="cover" eager className={s.cover} />
             <div className={s.meta}>
               <p className={s.counter}>

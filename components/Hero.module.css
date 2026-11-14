@@ -1,4 +1,7 @@
 .start { position: relative; background: var(--p-bg); }
+/* everything in the start block sits above the 3D stage */
+.start > :not([aria-hidden="true"]) { position: relative; z-index: 1; }
+.start > :global(.flag) { position: relative; z-index: 1; }
 .hero {
   position: relative;
   overflow: clip;
