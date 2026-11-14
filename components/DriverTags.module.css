@@ -1,0 +1,80 @@
+.drivers { padding-block: clamp(64px, 8vw, 112px); border-top: 6px solid var(--p-ink); background: var(--p-bg); overflow-x: clip; }
+.tags { display: grid; grid-template-columns: 1fr; gap: 48px 32px; }
+@media (min-width: 640px) { .tags { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .tags { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* lanyard: a red woven strap with white edge lines, ending in a metal clip that grips the card's slot */
+.lanyard { position: relative; padding-top: 76px; padding-right: 8px; padding-bottom: 8px; }
+.strap {
+  position: absolute; z-index: 2; top: 0; left: calc(50% - 4px - 15px);
+  width: 30px; height: 62px;
+  background:
+    linear-gradient(90deg, transparent 3px, #f4f5f7 3px 5px, transparent 5px calc(100% - 5px), #f4f5f7 calc(100% - 5px) calc(100% - 3px), transparent calc(100% - 3px)),
+    #c1121f;
+}
+.clip {
+  position: absolute; z-index: 4; top: 54px; left: calc(50% - 4px - 22px);
+  width: 44px; height: 42px;
+  border-radius: 4px 4px 6px 6px;
+  background: linear-gradient(180deg, #f1f2f4 0%, #c3c7cd 45%, #8d939b 100%);
+  border: 1px solid #5d636b;
+}
+.clipSlot { position: absolute; left: 8px; right: 8px; top: 8px; height: 6px; border-radius: 3px; background: #4a4f57; }
+
+.cardWrap { position: relative; }
+.shadow { position: absolute; inset: 0; transform: translate(8px, 8px); background: #3a3f47; border-radius: 14px; }
+.card {
+  position: relative; display: grid;
+  color: var(--ink);
+  border: 3px solid #111111; border-radius: 14px; overflow: hidden;
+  background: linear-gradient(135deg, var(--dark) 0%, var(--dark) 30%, var(--light) 100%);
+  transition: transform 150ms var(--ease);
+}
+@media (hover: hover) and (pointer: fine) { .cardWrap:hover .card { transform: translate(-2px, -2px); } }
+
+.head { position: relative; }
+/* the punched slot the clip grips */
+.slot { position: absolute; left: 50%; top: 8px; width: 40px; height: 10px; margin-left: -20px; border-radius: 5px; background: var(--p-bg); border: 1px solid #2c3139; }
+
+.body {
+  position: relative;
+  display: grid; grid-template-columns: minmax(0, 1fr) 46%; align-items: end;
+  min-height: 220px;
+}
+/* halftone dots fading in toward the photo side */
+.body::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1.5px) 0 0 / 6px 6px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 25%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 25%, #000 100%);
+}
+.text { position: relative; align-self: stretch; display: flex; flex-direction: column; padding: 16px 0 16px 16px; min-width: 0; }
+.first { font: 500 1.2rem/1.15 var(--font-tele); }
+.last { font: italic 800 1.5rem/1.15 var(--font-poster); overflow-wrap: anywhere; }
+.team { font: 600 0.85rem/1.3 var(--font-tele); margin-top: 6px; }
+.id { font: 600 0.85rem/1.3 var(--font-mono); font-variant-numeric: tabular-nums; }
+.num {
+  margin-top: 10px;
+  font: italic 900 2.8rem/1 var(--font-poster);
+  color: transparent; -webkit-text-stroke: 2px var(--ink);
+  letter-spacing: -0.02em; padding-right: 0.06em;
+}
+.flag {
+  margin-top: auto; width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid #ffffff;
+  background: linear-gradient(180deg, #a51931 0 16.6%, #f4f5f8 16.6% 33.3%, #2d2a4a 33.3% 66.6%, #f4f5f8 66.6% 83.3%, #a51931 83.3%);
+}
+
+/* photo: a portrait standing on the bottom edge, empty state in the card's own tone */
+.photo {
+  position: relative; align-self: end; margin-top: 16px;
+  --p-wash: rgba(0, 0, 0, 0.2); --hatch: rgba(255, 255, 255, 0.12);
+  --chip-bg: #0b0d10; --p-line: #2c3139; --chip-ink: #eef1f4; --p-muted: #a3aab3;
+}
+
+.bar {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px;
+  background: #c1121f; color: #fff;
+  font: italic 800 0.82rem/1.2 var(--font-poster); padding: 12px 16px;
+  border-top: 3px solid #111111;
+}

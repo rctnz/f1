@@ -1,0 +1,28 @@
+.foot { padding-top: clamp(48px, 7vw, 104px); overflow: clip; }
+.big { font: 700 clamp(2.6rem, 8.6vw, 7.8rem)/0.92 var(--font-tele); text-transform: uppercase; letter-spacing: -0.01em; }
+.mask { display: block; overflow-y: clip; overflow-x: visible; padding-block: 0.04em; margin-block: -0.04em; }
+.mask > span { display: block; }
+.red { color: var(--t-red); }
+.row {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 20px 40px;
+  margin-top: clamp(40px, 6vw, 72px);
+  padding-block: 28px clamp(40px, 5vw, 64px);
+  border-top: 1px solid var(--t-line);
+}
+.row p { font: 500 0.95rem/1.6 var(--font-tele); color: var(--t-muted); }
+.row strong { color: var(--t-ink); font: 600 0.9rem/1.6 var(--font-mono); }
+.nw { white-space: nowrap; }
+.top {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 0 20px;
+  border: 1px solid var(--t-line); background: var(--t-panel);
+  font: 600 0.95rem/1 var(--font-tele); text-decoration: none;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease), transform 150ms var(--ease);
+}
+@media (hover: hover) and (pointer: fine) { .top:hover { background: #1a2027; border-color: #3a424d; transform: translateY(-1px); } }
+.top:active { transform: translateY(1px) scale(0.985); transition-duration: 90ms; }
+@media (max-width: 639px) { .top { width: 100%; } }
+
+.flags { overflow: clip; }
+.flagRow { width: 120%; height: 24px; background: var(--flag); will-change: transform; }

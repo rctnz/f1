@@ -1,0 +1,20 @@
+.handover {
+  --h: max(48px, 6vw);
+  position: relative;
+  height: var(--h);
+  overflow: clip;
+  background: var(--from);
+}
+.posterFrom { --from: var(--p-bg); }
+.teleFrom { --from: var(--t-bg); }
+.posterTo { --to: var(--p-bg); }
+.teleTo { --to: var(--t-bg); }
+
+.fill { position: absolute; inset: 0; background: var(--to); clip-path: polygon(0 100%, 100% 0, 100% 100%); }
+
+.stripWrap {
+  position: absolute; left: -10%; width: 120%;
+  top: 50%; height: 24px; margin-top: -12px;
+  transform: rotate(calc(-1 * atan2(var(--h), 100vw)));
+}
+.strip { width: 130%; height: 100%; background: var(--flag); will-change: transform; }

@@ -1,0 +1,33 @@
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px 32px;
+  padding-block: 20px;
+}
+.brand {
+  display: inline-flex; align-items: center; min-height: 44px;
+  font: italic 900 clamp(1.6rem, 3vw, 2.1rem)/1 var(--font-poster);
+  letter-spacing: -0.01em; text-decoration: none;
+  padding-right: 4px;
+}
+.brand span { color: var(--p-red); margin-inline: 0.06em; }
+.menu { display: flex; flex-wrap: wrap; gap: 12px; }
+.link {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 20px;
+  border: 2px solid var(--p-ink); background: var(--p-bg);
+  font: italic 800 1rem/1 var(--font-poster); text-decoration: none;
+  transform: skewX(var(--skew));
+  transition: background-color 150ms var(--ease), color 150ms var(--ease), transform 150ms var(--ease);
+}
+.link > span { display: block; transform: skewX(calc(-1 * var(--skew))); }
+@media (hover: hover) and (pointer: fine) {
+  .link:hover { background: var(--p-ink); color: var(--p-bg); transform: translateY(-1px) skewX(var(--skew)); }
+}
+.link:active { transform: translateY(1px) skewX(var(--skew)) scale(0.985); transition-duration: 90ms; }
+
+@media (max-width: 699px) {
+  .header { padding-block: 16px; }
+  .header nav { width: 100%; }
+  .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; padding-inline: 8px; }
+  .link { width: 100%; padding: 0 12px; }
+}
