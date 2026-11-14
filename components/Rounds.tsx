@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { DESKTOP, gsap, MOTION, ScrollTrigger, useGSAP } from "@/lib/gsap";
-import { ROUNDS } from "@/lib/data";
+import { BASE, ROUNDS } from "@/lib/data";
 import RoundCard from "./RoundCard";
 import s from "./Rounds.module.css";
 
@@ -122,7 +122,7 @@ export default function Rounds({ photos }: { photos: Record<string, string | nul
                     <path d={TRACK} />
                   </clipPath>
                 </defs>
-                <image href="/kmutt-map.webp" x="0" y="0" width="1252" height="1052" className={s.map} clipPath="url(#campus)" />
+                <image href={`${BASE}/kmutt-map.webp`} x="0" y="0" width="1252" height="1052" className={s.map} clipPath="url(#campus)" />
                 <path d={TRACK} className={s.trackBase} />
                 <path d={TRACK} className={s.trackDraw} data-draw />
                 <g className={s.startLine}>

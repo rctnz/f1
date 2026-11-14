@@ -99,5 +99,8 @@ export const DRIVERS: Driver[] = [
   id, first, last, firstEn, lastEn, no: id.slice(-2), color: DRIVER_COLOR[id.slice(-2)], photo: `/photos/driver-${id.slice(-2)}.jpg`,
 }));
 
+/** prefix for files in public/ (empty locally, /f1 on GitHub Pages) */
+export const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
 export const COVER_PHOTO = '/photos/cover.jpg';
 export const titleOf = (r: Round) => r.title ?? 'ใส่หัวข้อ';

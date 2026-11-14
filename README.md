@@ -3,6 +3,8 @@
 Viewbook วิชา CPE102 (มจธ.) ของทีม A10 เล่า 16 สัปดาห์ของภาคเรียนเป็นฤดูกาลแข่งรถ 16 สนาม
 ทำด้วย Next.js 16, GSAP (ScrollTrigger, DrawSVG, MotionPath) และ Lenis
 
+เว็บ: https://rctnz.github.io/f1/
+
 ## รัน
 
 ```bash
@@ -23,3 +25,7 @@ npm run dev
 หรือคลิก/ลากรูปไปวางที่ช่องบนหน้าเว็บ (เก็บไว้ในเบราว์เซอร์เครื่องนั้นเท่านั้น)
 
 แผนที่ในแถบสนามแข่งมาจากผังแม่บท มจธ.บางมด (สำนักบริหารอาคารและสถานที่)
+
+## Deploy
+
+ทุกครั้งที่ push ขึ้น `main` GitHub Actions จะ build (static export) และ deploy ไป GitHub Pages ให้เอง (`.github/workflows/deploy.yml`)

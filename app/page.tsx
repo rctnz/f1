@@ -10,14 +10,14 @@ import DriverTags from "@/components/DriverTags";
 import Footer from "@/components/Footer";
 import ProgressBar from "@/components/ProgressBar";
 import SmoothScroll from "@/components/SmoothScroll";
-import { DRIVERS, ROUNDS } from "@/lib/data";
+import { BASE, DRIVERS, ROUNDS } from "@/lib/data";
 
 const EXT = ["jpg", "jpeg", "png", "webp"];
 
 /** a photo dropped into public/photos/<id>.<ext> wins over the in-browser slot */
 function findPhoto(id: string): string | null {
   for (const ext of EXT) {
-    if (fs.existsSync(path.join(process.cwd(), "public", "photos", `${id}.${ext}`))) return `/photos/${id}.${ext}`;
+    if (fs.existsSync(path.join(process.cwd(), "public", "photos", `${id}.${ext}`))) return `${BASE}/photos/${id}.${ext}`;
   }
   return null;
 }
