@@ -29,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: motionScript }} />
         {/* the hero's still and the 3D files start downloading with the page, not when the script that needs them runs */}
         <link rel="preload" as="image" href={`${BASE}/stills/grid.webp`} media="(min-width: 1024px) and (min-aspect-ratio: 1/1)" fetchPriority="high" />
+        <link rel="preload" as="image" href={`${BASE}/stills/grid-car.webp`} media="(min-width: 1024px) and (min-aspect-ratio: 1/1)" fetchPriority="high" />
         <link rel="preload" as="fetch" href={`${BASE}/models/car.glb`} crossOrigin="anonymous" />
         <link rel="preload" as="image" href={`${BASE}/models/asphalt.webp`} crossOrigin="anonymous" />
         <link rel="preload" as="image" href={`${BASE}/models/car-shadow.png`} crossOrigin="anonymous" />

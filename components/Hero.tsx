@@ -9,11 +9,14 @@ import s from "./Hero.module.css";
 const LINES = ["ENGINEERING", "EXPLORATION", "GRAND PRIX"];
 
 /**
- * public/stills/grid.webp is the 3D grid shot rendered once (1920x945, the page hidden). It is laid exactly where
- * the live car will be, so the first screen is whole while three.js and the model are still on their way.
- * These are that render's own numbers: its size, where the car sat in it and its scale.
+ * The 3D grid shot rendered once, at 1920x945 with the page hidden, as two stills in public/stills: grid.webp is
+ * the track, grid-car.webp the car and its shadow alone. They are laid exactly where the live scene will be, so the
+ * first screen is whole while three.js and the model are on their way, and they are the whole hero where the 3D
+ * stage cannot run (no graphics card behind the browser): the car still drives off at lights out.
+ * STILL: that render's size, where the car's origin sat in it and its scale. CAR: the car still's place in it.
  */
 const STILL = { w: 1920, h: 945, x: 865.84, y: 526.5, ppm: 209.25 };
+const CAR = { x: 207, y: 228, w: 1326 };
 
 /**
  * First screen: the car from overhead, as big as the screen (across a wide one, up an upright one), with the
@@ -43,7 +46,7 @@ export default function Hero({ children }: { children: ReactNode }) {
         const hero = q("[data-hero]")[0] as HTMLElement;
         const inner = q("[data-inner]")[0] as HTMLElement;
         const title = q("h1")[0] as HTMLElement;
-        const still = q("[data-still]")[0] as HTMLElement;
+        const [still, sprite] = q("[data-still]") as HTMLElement[];
         const range = document.createRange();
         const place = () => {
           const w = window.innerWidth;
@@ -64,7 +67,10 @@ export default function Hero({ children }: { children: ReactNode }) {
           still.style.width = `${(STILL.w * k).toFixed(1)}px`;
           still.style.left = `${(stage.gridX - STILL.x * k).toFixed(1)}px`;
           still.style.top = `${(stage.gridY - top - STILL.y * k).toFixed(1)}px`;
-          still.dataset.still = up ? "off" : "on";
+          sprite.style.width = `${(CAR.w * k).toFixed(1)}px`;
+          sprite.style.left = `${(stage.gridX + (CAR.x - STILL.x) * k).toFixed(1)}px`;
+          sprite.style.top = `${(stage.gridY - top + (CAR.y - STILL.y) * k).toFixed(1)}px`;
+          still.dataset.still = sprite.dataset.still = up ? "off" : "on";
           let right = 0;
           words.forEach((el) => {
             range.selectNodeContents(el);
@@ -110,6 +116,8 @@ export default function Hero({ children }: { children: ReactNode }) {
         start.fromTo(q("[data-go]"), { opacity: 0 }, { opacity: 1, duration: 0.05 }, "<");
         // lights out and away
         start.fromTo(stage, { launch: 0 }, { launch: 1, duration: 0.62 }, "<");
+        // the car's still makes the same run (it is only on screen when the live car is not)
+        start.fromTo(sprite, { x: 0 }, { x: () => window.innerWidth - stage.gridX + 3.4 * stage.gridPpm, duration: 0.62, ease: "power2.in" }, "<");
         start.to({}, { duration: 0.06 });
 
         return () => {
@@ -119,8 +127,10 @@ export default function Hero({ children }: { children: ReactNode }) {
           stage.launch = 0;
           stage.gridX = stage.gridY = stage.gridPpm = stage.gridUp = 0;
           delete root.dataset.grid;
-          still.removeAttribute("style");
-          still.dataset.still = "";
+          for (const img of [still, sprite]) {
+            img.removeAttribute("style");
+            img.dataset.still = "";
+          }
           hero.style.removeProperty("--text-end");
         };
       });
@@ -134,6 +144,8 @@ export default function Hero({ children }: { children: ReactNode }) {
       <section className={s.hero} aria-labelledby="hero-title" data-hero>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={s.still} data-still="" src={`${BASE}/stills/grid.webp`} width={STILL.w} height={STILL.h} alt="" decoding="async" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className={s.still} data-still="" src={`${BASE}/stills/grid-car.webp`} width={CAR.w} height={597} alt="" decoding="async" />
         <div className={s.scrim} data-scrim aria-hidden="true" />
 
         {/* start gantry: a beam across the track with five lights hanging from it */}

@@ -32,5 +32,6 @@ shader (`components/stage/ground.ts`) samples: three scales of noise and a scatt
 
 **Shadow and stills**: `car-shadow.png` is the car's footprint from above, blurred. `public/stills/car-apart.webp` is a
 frame of the exploded view (the page hidden, cropped to the car), shown where the 3D stage is not running.
-`public/stills/grid.webp` is the hero's overhead shot at 1920×945 with the page hidden; `components/Hero.tsx` lays it
-where the live car will be until the stage is up, and holds the numbers that go with it (re-shoot both together).
+`public/stills/grid.webp` (the track) and `grid-car.webp` (the car and its shadow, clear background) are the hero's
+overhead shot at 1920×945 with the page hidden; `components/Hero.tsx` lays them where the live scene will be until the
+stage is up, keeps them where it cannot run, and holds the numbers that go with them (re-shoot all together).

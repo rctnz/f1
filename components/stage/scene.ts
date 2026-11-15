@@ -59,9 +59,20 @@ export async function createScene(
   ticker: { add: (fn: () => void) => void; remove: (fn: () => void) => void },
   faces: WheelFaces,
 ): Promise<Scene | null> {
+  // WebGL without a graphics card behind it (hardware acceleration off, or a blocked driver) is drawn by the CPU, at
+  // about a frame a second for this scene: then the flat layout with its rendered stills is the better page. Asked
+  // of a throwaway canvas first, so a refusal is quiet.
+  {
+    const gl = document.createElement("canvas").getContext("webgl2", { failIfMajorPerformanceCaveat: true });
+    if (!gl) return null;
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    const name = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    if (/basic render|swiftshader|llvmpipe|software/i.test(name)) return null;
+  }
   let renderer: T.WebGLRenderer;
   try {
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: true });
   } catch {
     return null; // no WebGL: the page keeps its flat layout
   }
