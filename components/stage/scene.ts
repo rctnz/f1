@@ -258,7 +258,7 @@ export async function createScene(
     [-0.15, 0.02, 1.25], // the green one, left
   ];
   /** where on the screen that point sits: the wheel takes the left for one driver and the right for the next, and their name takes the other side */
-  const SX = [0.67, 0.3, 0.7, 0.3, 0.7];
+  const SX = [0.67, 0.35, 0.67, 0.35, 0.67];
   const STEER = [0, -0.16, 0.16, -0.12, 0.12];
   function applyWheel(s: State) {
     if (!wheel) return;
@@ -276,12 +276,14 @@ export async function createScene(
     const fy = lerp(a[1], b[1], t);
     const zoom = lerp(a[2], b[2], t) * (1 - (k > 1 ? 0.24 * Math.sin(Math.PI * t) : 0));
     const steer = lerp(STEER[Math.max(0, k - 1)], STEER[k], t);
-    const side = fx / 0.15; // -1 the wheel's left, +1 its right
+    const sx = mobile ? 0.5 : lerp(SX[Math.max(0, k - 1)], SX[k], t);
+    // the wheel always turns its face to the names: to the right when it stands on the left of the screen, and back
+    const toward = mobile ? 0 : clamp((0.5 - sx) / 0.2, -1, 1);
     // each driver is called like a gear change: their button goes in, the mode dial clicks on, the wheel kicks back
     const called = k > 0;
     const kick = called ? Math.sin(Math.PI * clamp01((f - 0.12) / 0.2)) : 0;
     setCamera({
-      az: rad(-8) * (1 - Math.abs(side)) + side * rad(15),
+      az: 0,
       el: rad(7),
       frameW: frameW / (mobile ? 1 + (zoom - 1) * 0.5 : zoom),
       fov: 24,
@@ -289,7 +291,7 @@ export async function createScene(
       tx: fx * Math.cos(steer) - fy * Math.sin(steer),
       ty: fx * Math.sin(steer) + fy * Math.cos(steer),
       tz: 0,
-      sx: mobile ? 0.5 : lerp(SX[Math.max(0, k - 1)], SX[k], t),
+      sx,
       sy: mobile ? 0.46 : 0.55,
     });
     // it comes and goes with the page: one screen under its place while the section arrives, one screen over it as
@@ -297,7 +299,7 @@ export async function createScene(
     const ride = (clamp01(s.wheelOut) - (1 - clamp01(s.wheelIn))) * h * (frameW / w);
     wheel.root.position.set(0, ride, -0.06 * kick);
     wheel.root.scale.setScalar(lerp(0.86, 1, kin) * (1 - 0.02 * kick));
-    wheel.pose(steer, lerp(rad(-120), 0, kin) - side * rad(9), rad(-11));
+    wheel.pose(steer, lerp(rad(-120), 0, kin) + toward * rad(24), rad(-11));
     wheel.show(face);
     wheel.press(k - 1, called ? smooth(0.1, 0.2, f) * (1 - smooth(0.34, 0.5, f)) : 0);
     wheel.click(called ? k - 1 + smooth(0.12, 0.3, f) : 0);
