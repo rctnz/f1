@@ -18,3 +18,6 @@
   transform: rotate(calc(-1 * atan2(var(--h), 100vw)));
 }
 .strip { width: 130%; height: 100%; background: var(--flag); will-change: transform; }
+
+/* after a section the 3D stage shows through: the car is wiped by the seam itself, not by a wedge of page colour */
+:global(html[data-stage="on"]) .clear { background: transparent; }

@@ -7,7 +7,7 @@ import s from "./Handover.module.css";
 type Theme = "poster" | "tele";
 
 /** the diagonal seam between a white and a black section, with a chequered strip riding on it */
-export default function Handover({ from, to }: { from: Theme; to: Theme }) {
+export default function Handover({ from, to, clear }: { from: Theme; to: Theme; clear?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -25,7 +25,7 @@ export default function Handover({ from, to }: { from: Theme; to: Theme }) {
   );
 
   return (
-    <div className={`${s.handover} ${s[from + "From"]} ${s[to + "To"]}`} aria-hidden="true" ref={ref}>
+    <div className={`${s.handover} ${s[from + "From"]} ${s[to + "To"]} ${clear ? s.clear : ""}`} aria-hidden="true" ref={ref}>
       <div className={s.fill} />
       <div className={s.stripWrap}>
         <div className={s.strip} data-strip />

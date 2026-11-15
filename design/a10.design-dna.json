@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "name": "A10 / CPE102 Grand Prix",
+    "description": "Viewbook of team A10 for KMUTT CPE102, told as a 16-round race season. One 3D car carries the page from the grid slot to the exploded view; the scroll is the only control.",
+    "source_references": ["the site itself, measured from screenshots at 1440x900 (hero, lap, exploded views)"],
+    "created_at": "2026-11-15"
+  },
+  "design_system": {
+    "color": {
+      "palette_type": "dark, near-monochrome with one red accent and a yellow signal",
+      "primary": { "hex": "#eef1f4", "role": "ink: headlines and body text on the dark ground" },
+      "secondary": { "hex": "#a3aab3", "role": "muted text, mono notes, kickers" },
+      "accent": { "hex": "#ff3b30", "role": "red as text or stroke on dark: the third headline line, counters, label numbers, leader dots" },
+      "neutral": {
+        "scale": ["#eef1f4", "#a3aab3", "#8b949e", "#2a2e35", "#1a1d22", "#121418", "#0b0d10"],
+        "usage": "lightest to darkest. #121418 is the page and the asphalt of the 3D track; #0b0d10 is the telemetry ground; text sits at the light end"
+      },
+      "semantic": { "success": "#34d399", "warning": "#ffd60a", "error": "#ff3b30", "info": "#a3aab3" },
+      "surface": { "background": "#121418", "card": "#1a1d22", "elevated": "#11151a" },
+      "contrast_strategy": "every text pair at 4.5:1 or better: #eef1f4 on #121418 is 15.9:1, #a3aab3 on #121418 is 7.9:1, #ff3b30 on #121418 is 5.4:1, white on #c1121f is 6.0:1",
+      "measurement": { "k": 8, "sampling": "design-dna measure-colors.mjs on the hero at 1440x900" },
+      "measured_palette": [
+        { "hex": "#111317", "coverage": 0.778, "role": "background" },
+        { "hex": "#eef1f4", "coverage": 0.105, "role": "text" },
+        { "hex": "#fb3d33", "coverage": 0.04, "role": "accent" },
+        { "hex": "#a21e20", "coverage": 0.023, "role": "unassigned" },
+        { "hex": "#333134", "coverage": 0.022, "role": "unassigned" },
+        { "hex": "#b8b5b8", "coverage": 0.019, "role": "unassigned" },
+        { "hex": "#676566", "coverage": 0.011, "role": "unassigned" },
+        { "hex": "#ceb31a", "coverage": 0.001, "role": "unassigned" }
+      ]
+    },
+    "typography": {
+      "type_scale": {
+        "display": { "size": "clamp(2.5rem, 10.4cqi, 8.6rem)", "weight": 900, "line_height": 0.86, "tracking": "-0.015em" },
+        "heading_1": { "size": "clamp(2rem, 6vw, 4.5rem)", "weight": 900, "line_height": 0.92, "tracking": "-0.01em" },
+        "heading_2": { "size": "1.5rem", "weight": 800, "line_height": 1.15, "tracking": "0" },
+        "heading_3": { "size": "1.4rem", "weight": 800, "line_height": 1.2, "tracking": "0" },
+        "body": { "size": "1rem", "weight": 400, "line_height": 1.7, "tracking": "0" },
+        "body_small": { "size": "0.95rem", "weight": 400, "line_height": 1.5, "tracking": "0" },
+        "caption": { "size": "0.9rem", "weight": 500, "line_height": 1.35, "tracking": "0" },
+        "overline": { "size": "0.85rem", "weight": 600, "line_height": 1.2, "tracking": "0.16em" }
+      },
+      "font_families": { "heading": "Kanit 800/900 italic", "body": "Anuphan", "mono": "JetBrains Mono, with Chakra Petch for telemetry headings" },
+      "font_style_notes": "Thai first. Kanit Black Italic is the poster voice and is also the face painted on the car (A10). Mono only carries data: dates, round codes, timing rows, exploded-view kickers and notes."
+    },
+    "spacing": {
+      "base_unit": "4px",
+      "scale": [4, 8, 12, 16, 20, 24, 32, 40, 56, 72, 96],
+      "content_density": "open on the 3D screens (one idea per screen), dense in the timing sheet",
+      "section_rhythm": "pinned screens of exactly one viewport, then free-scrolling data sections; a diagonal chequered seam between the two worlds"
+    },
+    "layout": {
+      "grid_system": "12 columns inside a 1280px wrap; gutters 16 / 32 / 64px",
+      "max_content_width": "1280px",
+      "columns": 12,
+      "gutter": "16px phones, 32px tablets, 64px desktop",
+      "breakpoints": { "phone": "< 768px", "tablet": "768px", "desktop": "1024px (pins for the calendar also need 700px of height)" },
+      "alignment_tendency": "left-aligned words, the car on the right or below; label column on the right of an exploded view"
+    },
+    "shape": {
+      "border_radius": { "small": "6px", "medium": "8px", "large": "14px", "pill": "999px (only the round gantry lights and markers)" },
+      "border_usage": "1px hairlines in #2a2e35 on cards; 2px ink outlines on nav links; 6px ink rules between poster sections",
+      "divider_style": "solid rules and a 24px chequered strip"
+    },
+    "elevation": {
+      "shadow_style": "none on the interface; the 3D car has a baked contact shadow of its own footprint",
+      "levels": { "low": "none", "med": "none", "high": "none" },
+      "depth_cues": "surface steps (#121418 to #1a1d22), hairlines, and the real perspective of the track"
+    },
+    "iconography": { "style": "none: numbers and type do the work", "stroke_weight": "n/a", "size_scale": "n/a", "preferred_set": "n/a" },
+    "motion": {
+      "easing": "expo.out for entrances (signature), power3.inOut for clip reveals, none for anything tied to scroll; 3D easing is inOutCubic and outCubic applied inside the scene",
+      "duration_scale": { "micro": "150-180ms hover and press", "normal": "300ms entrances", "macro": "600-900ms headline rise and counter roll; scroll-driven 3D has no duration" },
+      "entrance_pattern": "rise 24px with fade, 60ms stagger, under 500ms in total; headlines rise out of a clipped baseline",
+      "exit_pattern": "the same move reversed when the section leaves upward",
+      "philosophy": "The scroll bar is the throttle. One car, one unbroken camera move, and nothing in 3D moves unless the scroll moved it. Archetype: energetic, tempered by rigid-metal rules for the machine (no overshoot)."
+    },
+    "components": {
+      "button": "skewed outline link, 44px tall, ink border, fills ink on hover in 150ms, presses 1px",
+      "input": "photo slot: click or drop a picture, stored in the browser",
+      "card": "calendar card: photo, dark shade under the title, opens wide when the race is at it",
+      "navigation": "four anchor links in the header; scrolling is the only way through the content",
+      "modal": "none",
+      "list": "timing rows in mono with a status column; exploded-view labels numbered 01 to 06 top to bottom",
+      "notes": "label = number in red mono, part name in poster italic, note in mono; a 1.5px leader line from a red dot on the part"
+    }
+  },
+  "design_style": {
+    "aesthetic": {
+      "mood": "fast, exact, a little loud",
+      "visual_metaphor": "a race weekend: grid, lights out, timing sheet, parc ferme",
+      "era_influence": "motorsport posters and broadcast timing graphics",
+      "genre": "scroll-driven showpiece for a course viewbook",
+      "personality_traits": ["direct", "mechanical", "proud of the work"],
+      "adjectives": ["italic", "high-contrast", "engineered"]
+    },
+    "visual_language": "heavy italic type against real 3D: track paint, a kerb, rubber laid at the start. Chrome stays flat and quiet so the car carries the colour.",
+    "composition": "words left, machine right; overhead on the grid, side-on at speed, three-quarter on the stand",
+    "imagery": "one F1 car and one steering wheel, both with every real brand mark removed and the team's A10 painted on; the team's own photos per round",
+    "interaction_feel": "scrubbing a film: every frame is a function of scroll, forwards and backwards",
+    "brand_voice_in_ui": "Thai, plain, short; English only for round titles and race terms"
+  },
+  "visual_effects": {
+    "overview": {
+      "effect_intensity": "high on five pinned screens, none elsewhere",
+      "performance_tier": "heavy (three.js) with a flat fallback",
+      "fallback_strategy": "no WebGL or prefers-reduced-motion: no stage, sections in normal flow, stills of both exploded views with plain numbered lists",
+      "primary_technology": "three.js 0.181 (plain, loaded after first paint), GSAP 3.15 ScrollTrigger, Lenis"
+    },
+    "background_effects": { "enabled": false, "notes": "the page colour is the asphalt; nothing decorative behind content" },
+    "particle_systems": { "enabled": false },
+    "3d_elements": {
+      "enabled": true,
+      "renderer": "one fixed WebGLRenderer behind the page, alpha, DPR capped near four million pixels, drawn only when the scroll state changes",
+      "lighting": "RoomEnvironment through PMREM, key and rim directional lights, a back kicker for the wheel",
+      "camera": "one perspective camera described as azimuth, elevation and metres across the screen; long lenses (18 to 26 degrees)",
+      "materials": "lacquered red paint with clearcoat, matt rubber, satin carbon; decals on a polygon offset",
+      "geometry": "car 183k triangles and wheel 49k, meshopt-compressed GLB with WebP textures",
+      "post_processing": "none",
+      "interaction_model": "scroll only"
+    },
+    "shader_effects": { "enabled": true, "notes": "one ground shader: grid slot, start line, kerb, tyre marks, speed streaks; antialiased with fwidth; screen-space keep-outs behind text" },
+    "scroll_effects": {
+      "parallax": { "enabled": true, "layers": 1, "depth_range": "small", "speed_curve": "linear; headline lines only" },
+      "scroll_triggered_animations": {
+        "enabled": true,
+        "trigger_points": ["hero pin: lights then launch", "13/16 pin: one lap of the camera", "calendar pin: horizontal run, car under the open card", "exploded car pin", "exploded wheel pin"],
+        "animation_type": "pinned, scrubbed camera and model state",
+        "scrub_behavior": "scrub 0.5 to 0.6 seconds of smoothing; progress equals scroll"
+      },
+      "scroll_morphing": { "enabled": false }
+    },
+    "text_effects": { "enabled": true, "notes": "headline lines rise from a clipped baseline; the 13/16 counter rolls digit columns" },
+    "cursor_effects": { "enabled": false },
+    "image_effects": { "enabled": true, "notes": "cover photo reveals with a clip-path wipe; calendar photos zoom 3% on hover" },
+    "glassmorphism_neumorphism": { "enabled": false },
+    "canvas_drawings": { "enabled": true, "notes": "the steering wheel's display is drawn on a canvas from the site's own data (rounds done)" },
+    "svg_animations": { "enabled": true, "notes": "leader lines of the exploded views draw out from the part; the KMUTT track draws with DrawSVG" },
+    "composite_notes": "3D sits behind the DOM at z-index 0. Sections are either solid (they wipe the car away) or clear (the car shows through). No glow, no purple, no blur."
+  }
+}

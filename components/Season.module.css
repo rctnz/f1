@@ -1,0 +1,32 @@
+.season { position: relative; background: var(--p-bg); padding-block: clamp(56px, 8vw, 104px); }
+/* with motion the section is one screen: words on the left (top on phones), the car has the rest */
+:global(html.motion) .season { min-height: 100svh; display: flex; align-items: flex-start; padding-block: clamp(40px, 7svh, 72px); }
+:global(html[data-stage="on"]) .season { background: transparent; }
+
+.inner { width: min(100% - 2 * var(--gutter), var(--maxw)); }
+.copy { display: grid; gap: 12px; justify-items: start; max-width: 34rem; }
+
+.counter { font: italic 900 clamp(4.5rem, 9vw, 8.5rem)/1 var(--font-poster); letter-spacing: -0.02em; }
+.counterVis { display: inline-flex; align-items: baseline; gap: 0.12em; white-space: nowrap; }
+.counterVis > span { flex-shrink: 0; display: inline-flex; }
+.counterRed { color: var(--p-red); }
+.slash { color: var(--p-ink); }
+.digit { position: relative; display: inline-block; height: 1em; overflow-x: visible; overflow-y: clip; vertical-align: top; }
+/* the final digit sets the width, so a narrow 1 does not sit in an 8-wide box */
+.sizer { display: block; visibility: hidden; height: 1em; padding-right: 0.04em; }
+.col { position: absolute; left: 0; top: 0; display: block; transform: translateY(calc(var(--d) * -10%)); }
+.col > span { display: block; height: 1em; padding-right: 0.04em; }
+
+.label { font: italic 800 1.5rem/1.2 var(--font-poster); }
+.lead { color: var(--p-muted); max-width: 40ch; font-size: 1.05rem; }
+.coverWrap { width: min(100%, 22rem); margin-top: 12px; }
+.cover { width: 100%; }
+
+/* phones: the car sits in the lower part of the screen, so the photo stays small */
+@media (max-width: 767.98px) {
+  :global(html.motion) .coverWrap { width: 56%; }
+}
+@media (min-width: 1024px) {
+  :global(html.motion) .season { align-items: center; }
+  .copy { width: 40%; max-width: 30rem; }
+}

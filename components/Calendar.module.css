@@ -65,3 +65,9 @@
   /* fixed width so the words never re-wrap while the card opens; they zoom instead */
   :global(html.motion) .text { right: auto; width: 240px; will-change: transform; }
 }
+
+/* with the 3D stage: the section is clear, the row sits higher and the car has the strip underneath */
+@media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
+  :global(html[data-stage="on"]) .calendar { background: transparent; justify-content: flex-start; padding-block: clamp(40px, 7svh, 72px) 0; }
+  :global(html[data-stage="on"]) .card { height: min(360px, 46svh); }
+}

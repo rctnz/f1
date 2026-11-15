@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap, MOTION, PIN_OK, ScrollTrigger, scrollToY, useGSAP } from "@/lib/gsap";
 import { ROUNDS, titleOf } from "@/lib/data";
 import { getPhoto, PHOTO_EVENT } from "@/lib/photoStore";
+import { stage } from "@/lib/stage";
 import s from "./Calendar.module.css";
 
 const SMALL = `${MOTION} and (max-width: 1023.98px), ${MOTION} and (max-height: 699.98px)`;
@@ -75,9 +76,27 @@ export default function Calendar({ photos }: { photos: Record<string, string | n
         };
         setOpen(0);
         const dist = () => Math.max(0, row.scrollWidth - track.clientWidth);
+        // the 3D car sits under the card the race is at, and the ground runs by as fast as the cards do
+        const follow = (p: number) => {
+          const at = p * (n - 1);
+          const i0 = Math.min(n - 2, Math.floor(at));
+          const f = at - i0;
+          const a = items[i0].getBoundingClientRect();
+          const b = items[i0 + 1].getBoundingClientRect();
+          stage.calX = (a.left + a.width / 2) * (1 - f) + (b.left + b.width / 2) * f;
+          stage.calRun = dist() * p;
+        };
+        // while the section rises into place the camera settles low and the car drives in under round 1
+        gsap.fromTo(stage, { toCal: 0 }, { toCal: 1, ease: "none", scrollTrigger: { trigger: root, start: "top bottom", end: "top top", scrub: 0.5 } });
         const tween = gsap.to(row, {
           x: () => -dist(),
           ease: "none",
+          // driven from the tween, not the trigger, so the cards, the open card and the car share one smoothed position
+          onUpdate() {
+            const p = this.progress();
+            setOpen(p);
+            follow(p);
+          },
           scrollTrigger: {
             trigger: root,
             start: "top top",
@@ -85,7 +104,12 @@ export default function Calendar({ photos }: { photos: Record<string, string | n
             pin: true,
             scrub: 0.6,
             invalidateOnRefresh: true,
-            onUpdate: (self) => setOpen(self.progress),
+            onRefresh: (self) => {
+              // the car's body sits midway between the bottom of the cards and the bottom of the screen
+              const bottom = row.getBoundingClientRect().bottom - root.getBoundingClientRect().top;
+              stage.calY = bottom + (window.innerHeight - bottom) * 0.6;
+              follow(self.animation ? self.animation.progress() : 0);
+            },
           },
         });
         // keyboard: jump to the focused card's point in the race
@@ -99,6 +123,7 @@ export default function Calendar({ photos }: { photos: Record<string, string | n
         root.addEventListener("focusin", onFocus);
         return () => {
           root.removeEventListener("focusin", onFocus);
+          stage.toCal = stage.calRun = stage.calX = stage.calY = 0;
           gsap.set(items, { clearProps: "width" });
           gsap.set([...texts, ...nums].filter(Boolean), { clearProps: "transform" });
         };

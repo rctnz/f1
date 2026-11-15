@@ -141,3 +141,30 @@ export const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 export const COVER_PHOTO = '/photos/cover.jpg';
 export const titleOf = (r: Round) => r.title ?? 'ใส่หัวข้อ';
+
+/** ป้ายของภาพแยกชิ้นส่วน: ลำดับต้องตรงกับจุดชี้ในโมเดล (components/stage/car.ts และ wheel.ts) ไม่เกิน 6 ป้าย */
+export type Part = { name: string; note: string; href?: string };
+
+/** ชิ้นส่วนรถ 1 ชิ้น จับคู่กับสนามที่เรียน 1 สนาม กดที่ป้ายแล้วไปยังสนามนั้น */
+const paired = (name: string, week: number): Part => {
+  const r = ROUNDS[week - 1];
+  return { name, note: 'R' + r.nn + ' / ' + titleOf(r), href: '#round-' + r.nn };
+};
+export const CAR_PARTS: Part[] = [
+  paired('ปีกหน้า', 3), // Computer Aided Design: รูปทรงที่ต้องวาดก่อนสร้าง
+  paired('Halo', 11), // Network Security: ชิ้นที่มีไว้ป้องกัน
+  paired('ห้องคนขับ', 4), // Basic Embedded Systems: ปุ่มและวงจรบนพวงมาลัย
+  paired('เครื่องยนต์', 7), // Programming Concept: สิ่งที่ทำให้รถวิ่ง
+  paired('ยาง', 12), // Operating Systems: ชั้นที่อยู่ระหว่างรถกับพื้น
+  paired('พื้นรถ', 2), // Working Foundation: ฐานที่ทุกชิ้นวางอยู่
+];
+
+/** พวงมาลัย: แต่ละชั้นทำหน้าที่อะไร */
+export const WHEEL_PARTS: Part[] = [
+  { name: 'จอ', note: FIN_COUNT + '/' + ROUNDS.length + ' สนามที่จบแล้ว' },
+  { name: 'ปุ่มหมุน', note: 'ปรับโหมดรถระหว่างขับ' },
+  { name: 'ปุ่มกด', note: 'TALK, PL, N, OT, BB+ และ BB-' },
+  { name: 'มือจับ', note: 'จับสองมือ ซ้ายและขวา' },
+  { name: 'แป้นหลัง', note: 'เปลี่ยนเกียร์ และคลัตช์ตอนออกตัว' },
+  { name: 'ขั้วปลดเร็ว', note: 'ถอดพวงมาลัยเพื่อเข้าออกรถ' },
+];
