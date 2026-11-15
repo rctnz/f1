@@ -73,7 +73,7 @@ export default function DriverTags({ photos }: { photos: Record<string, string |
             start: "top top",
             end: () => "+=" + (isStageOn() ? Math.round(vh() * 2.6) : 0), // no wheel, no hold
             pin: true,
-            scrub: 0.25,
+            scrub: 0.9,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },

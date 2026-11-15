@@ -269,19 +269,21 @@ export async function createScene(
     const { k, f, face } = wheelStep(s.wheelBeat, STEER.length - 1);
     // the move to each close-up takes the first half of the beat, and the shot holds for the rest; between two
     // close-ups the camera eases back on the way across, so the swing from one side to the other reads
-    const t = inOut3(clamp01(f / 0.5));
+    // a long, soft move: it takes most of the beat and eases in and out with no hard start or stop
+    const u = clamp01(f / 0.82);
+    const t = u * u * u * (u * (u * 6 - 15) + 10);
     const a = FOCUS[Math.max(0, k - 1)];
     const b = FOCUS[k];
     const fx = lerp(a[0], b[0], t);
     const fy = lerp(a[1], b[1], t);
-    const zoom = lerp(a[2], b[2], t) * (1 - (k > 1 ? 0.24 * Math.sin(Math.PI * t) : 0));
+    const zoom = lerp(a[2], b[2], t) * (1 - (k > 1 ? 0.14 * Math.sin(Math.PI * t) : 0));
     const steer = lerp(STEER[Math.max(0, k - 1)], STEER[k], t);
     const sx = mobile ? 0.5 : lerp(SX[Math.max(0, k - 1)], SX[k], t);
     // the wheel always turns its face to the names: to the right when it stands on the left of the screen, and back
     const toward = mobile ? 0 : clamp((0.5 - sx) / 0.2, -1, 1);
     // each driver is called like a gear change: their button goes in, the mode dial clicks on, the wheel kicks back
     const called = k > 0;
-    const kick = called ? Math.sin(Math.PI * clamp01((f - 0.12) / 0.2)) : 0;
+    const kick = called ? 0.3 * Math.sin(Math.PI * clamp01((f - 0.12) / 0.3)) : 0;
     setCamera({
       az: 0,
       el: rad(7),
