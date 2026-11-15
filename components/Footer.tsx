@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { gsap, MOTION, useGSAP } from "@/lib/gsap";
+import { MODEL_CREDITS } from "@/lib/data";
 import s from "./Footer.module.css";
 
 export default function Footer() {
@@ -45,6 +46,30 @@ export default function Footer() {
           <a className={s.top} href="#top">
             กลับขึ้นด้านบน
           </a>
+        </div>
+        <div className={s.credits}>
+          <p>
+            <strong>โมเดล 3D</strong>
+          </p>
+          <ul>
+            {MODEL_CREDITS.map((c) => (
+              <li key={c.title}>
+                {c.what}:{" "}
+                <a href={c.source} target="_blank" rel="noopener noreferrer">
+                  {c.title}
+                </a>{" "}
+                โดย{" "}
+                <a href={c.profile} target="_blank" rel="noopener noreferrer">
+                  {c.author}
+                </a>{" "}
+                สัญญาอนุญาต{" "}
+                <a href={c.licenseUrl} target="_blank" rel="noopener noreferrer">
+                  {c.license}
+                </a>{" "}
+                <span className={s.nw2}>{c.note}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
       <div className={s.flags} aria-hidden="true">

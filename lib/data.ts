@@ -168,3 +168,29 @@ export const WHEEL_PARTS: Part[] = [
   { name: 'แป้นหลัง', note: 'เปลี่ยนเกียร์ และคลัตช์ตอนออกตัว' },
   { name: 'ขั้วปลดเร็ว', note: 'ถอดพวงมาลัยเพื่อเข้าออกรถ' },
 ];
+
+/** เครดิตโมเดล 3D: ชื่อผลงาน ผู้สร้าง และสัญญาอนุญาต ตามข้อมูลที่ฝังมาในไฟล์ที่ดาวน์โหลดจาก Sketchfab */
+export type ModelCredit = { what: string; title: string; source: string; author: string; profile: string; license: string; licenseUrl: string; note: string };
+
+export const MODEL_CREDITS: ModelCredit[] = [
+  {
+    what: 'รถ',
+    title: '2022 Ferrari F1-75',
+    source: 'https://sketchfab.com/3d-models/2022-ferrari-f1-75-ce53f6bd404c41ceaebb29813e87cfb9',
+    author: 'asdasfwefsfwsef',
+    profile: 'https://sketchfab.com/jordansingh2008',
+    license: 'CC BY 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+    note: 'ทีม A10 ดัดแปลง: ลบโลโก้ ใส่ลาย A10 และแยกชิ้นส่วน',
+  },
+  {
+    what: 'พวงมาลัย',
+    title: 'F1 Steering Wheel W11',
+    source: 'https://sketchfab.com/3d-models/f1-steering-wheel-w11-97e6f81365714a78a784c4bc92903b7b',
+    author: 'pawel7557',
+    profile: 'https://sketchfab.com/pawel7557',
+    license: 'Sketchfab Standard License',
+    licenseUrl: 'https://sketchfab.com/licenses',
+    note: 'ไม่อนุญาตให้นำไฟล์โมเดลไปใช้หรือเผยแพร่ต่อ',
+  },
+];

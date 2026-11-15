@@ -7,7 +7,7 @@
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
   gap: 20px 40px;
   margin-top: clamp(40px, 6vw, 72px);
-  padding-block: 28px clamp(40px, 5vw, 64px);
+  padding-block: 28px clamp(24px, 3vw, 32px);
   border-top: 1px solid var(--t-line);
 }
 .row p { font: 500 0.95rem/1.6 var(--font-tele); color: var(--t-muted); }
@@ -23,6 +23,16 @@
 @media (hover: hover) and (pointer: fine) { .top:hover { background: #1a2027; border-color: #3a424d; transform: translateY(-1px); } }
 .top:active { transform: translateY(1px) scale(0.985); transition-duration: 90ms; }
 @media (max-width: 639px) { .top { width: 100%; } }
+
+.credits { display: grid; gap: 6px; padding-bottom: clamp(40px, 5vw, 64px); max-width: 76ch; font: 400 0.85rem/1.65 var(--font-body); color: var(--t-muted); }
+.credits strong { font: 600 0.8rem/1.6 var(--font-mono); letter-spacing: 0.04em; color: var(--t-ink); }
+.credits ul { display: grid; gap: 4px; }
+.credits a {
+  color: var(--t-ink); text-decoration: underline; text-decoration-color: #3a424d; text-underline-offset: 3px;
+  transition: text-decoration-color 150ms var(--ease);
+}
+@media (hover: hover) and (pointer: fine) { .credits a:hover { text-decoration-color: currentColor; } }
+.nw2 { display: inline-block; }
 
 .flags { overflow: clip; }
 .flagRow { width: 120%; height: 24px; background: var(--flag); will-change: transform; }
