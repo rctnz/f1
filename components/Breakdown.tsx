@@ -194,11 +194,8 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
               if (open.i !== was && typed[was]) typed[was]!.textContent = "";
             });
           }
-          if (i >= 0) {
-            if (was >= 0 && was !== i) stage.focusK = 0; // the part named now starts from rest
-            stage.focus = i;
-          }
-          gsap.to(stage, { focusK: i >= 0 ? 1 : 0, duration: 0.34, ease: "power3.out", overwrite: "auto" });
+          // each part has its own ease: the one named moves out while the one left settles back, neither snaps
+          stage.nudge.forEach((_, n) => gsap.to(stage.nudge, { [n]: n === i ? 1 : 0, duration: 0.4, ease: "power3.out", overwrite: "auto" }));
           if (i < 0) return;
           const note = notes[i];
           const out = typed[i];
@@ -292,8 +289,9 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
           unstick();
           lines.forEach((l) => l.remove());
           dots.forEach((d) => d.remove());
-          stage.pit = stage.explode = stage.focusK = 0;
-          stage.focus = -1;
+          gsap.killTweensOf(stage.nudge);
+          stage.pit = stage.explode = 0;
+          stage.nudge.fill(0);
           [...labels, ...pins, ...(notes.filter(Boolean) as HTMLElement[])].forEach((el) => el.removeAttribute("style"));
           labels.forEach((l) => l.removeAttribute("data-open"));
           typed.forEach((t) => t && (t.textContent = ""));

@@ -31,8 +31,7 @@ export const stage = {
   // exploded view of the car
   pit: 0, // camera comes round to the three-quarter view
   explode: 0,
-  focus: -1, // which labelled part the pointer is on (-1 = none)
-  focusK: 0, // 0 → 1: that part eases a little further out
+  nudge: [0, 0, 0, 0, 0, 0], // per labelled part, 0 → 1: eased a little further out while its label is pointed at
 
   // steering wheel beside the driver roll call
   wheelIn: 0, // the section arriving: the wheel comes up with the page and turns to face the camera

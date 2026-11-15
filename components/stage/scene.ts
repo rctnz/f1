@@ -241,7 +241,7 @@ export async function createScene(
 
     car.root.position.set(x, 0, 0);
     car.spin((x + travel) / car.wheelRadius);
-    car.explode(ex, s.focus, s.focusK);
+    car.explode(ex, s.nudge);
   }
 
   // ---- the steering wheel's shots ------------------------------------------------------------------------------
@@ -342,7 +342,7 @@ export async function createScene(
   // ---- frame ---------------------------------------------------------------------------------------------------
   const sig = () => {
     const s = stage;
-    return [s.act, s.arrive, s.gridX, s.gridY, s.gridPpm, s.gridUp, s.launch, s.chase, s.orbit, s.away, s.toCal, s.calX, s.calY, s.calRun, s.pit, s.explode, s.focus, s.focusK, s.wheelIn, s.wheelBeat, s.wheelOut].map((n) => (typeof n === "number" ? n.toFixed(4) : n)).join("|") + `|${w}x${h}|${car ? 1 : 0}${wheel ? 1 : 0}`;
+    return [s.act, s.arrive, s.gridX, s.gridY, s.gridPpm, s.gridUp, s.launch, s.chase, s.orbit, s.away, s.toCal, s.calX, s.calY, s.calRun, s.pit, s.explode, s.nudge.map((v) => v.toFixed(3)).join(","), s.wheelIn, s.wheelBeat, s.wheelOut].map((n) => (typeof n === "number" ? n.toFixed(4) : n)).join("|") + `|${w}x${h}|${car ? 1 : 0}${wheel ? 1 : 0}`;
   };
   let onScreen = true;
   const frame = () => {

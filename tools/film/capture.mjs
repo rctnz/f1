@@ -37,7 +37,7 @@ try {
   console.log('calendar ends at', JSON.stringify(cal));
   await page.addStyleTag({ content: 'body > *:not([class*=stage]) { visibility: hidden !important; } nextjs-portal { display: none !important; } html, body { background: transparent !important; }' });
 
-  const BASE = { act: 'car', arrive: 1, launch: 1, chase: 1, orbit: 0, away: 0, toCal: 0, calX: 0, calY: cal.calY, calRun: 0, pit: 0, explode: 0, focus: -1, focusK: 0, wheelIn: 1, wheelBeat: 0, wheelOut: 0 };
+  const BASE = { act: 'car', arrive: 1, launch: 1, chase: 1, orbit: 0, away: 0, toCal: 0, calX: 0, calY: cal.calY, calRun: 0, pit: 0, explode: 0, wheelIn: 1, wheelBeat: 0, wheelOut: 0 };
   const shot = async (state, ground = 1) => {
     await page.evaluate((state, ground) => { Object.assign(window.__stage, state); window.__stageHooks.groundOpacity(ground); }, { ...BASE, ...state }, ground);
     await sleep(140); // two draws: the second one has no motion blur left in it
