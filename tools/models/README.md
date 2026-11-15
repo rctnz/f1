@@ -1,15 +1,16 @@
-# How the 3D models were prepared
+# How the 3D assets were prepared
 
-The files in `public/models/` are built from the two GLB files the team supplied (`car.glb`, `sterring wheel.glb`).
-The originals are not in the repo. To rebuild after changing a model or the livery:
+`public/models/` holds three files. Only the car comes from a downloaded model; the steering wheel on the
+Driver Tags screen is not a file at all, it is built in code in `components/stage/wheel.ts`.
 
 ```bash
-# once, in an empty folder next to the originals
+# once, in an empty folder next to the original car model
 npm i @gltf-transform/core@4 @gltf-transform/extensions@4 @gltf-transform/functions@4 meshoptimizer sharp
 pip install pillow
 ```
 
-**Car**
+**Car** (`car.glb`): "2022 Ferrari F1-75" by asdasfwefsfwsef on Sketchfab, CC BY 4.0, credited in the site footer.
+The original is not in the repo. To rebuild after changing the model or the livery:
 
 1. Dump the textures of the original (any glTF tool; the scripts expect them numbered `00.png` … `44.png` in texture order).
 2. `python car2tex.py <textures dir> <out dir> <this folder>` cleans the livery: every real brand mark comes off,
@@ -18,11 +19,10 @@ pip install pillow
    (only the number on the nose is kept, as A10), splits the rear wing and the wing fittings off the big meshes so the
    exploded view can move them, simplifies, and compresses (meshopt + WebP). 270k → 183k triangles, 13.7 MB → 2.1 MB.
 
-**Steering wheel**
+The node names this script writes are the ones `components/stage/car.ts` looks for.
 
-`node build-wheel.mjs <wheel.glb> ../../public/models/wheel.glb` splits the single baked mesh into its shells and files
-each under a layer (screen, dials, controls, body, grips, paddles, hub). 90k → 49k triangles, 10.3 MB → 1.2 MB.
+**Asphalt** (`asphalt.webp`): `python asphalt.py ../../public/models/asphalt.webp` draws the tileable grain the track
+shader (`components/stage/ground.ts`) samples: three scales of noise and a scatter of pale stones. No source picture.
 
-The node and layer names these scripts write are the ones `components/stage/car.ts` and `wheel.ts` look for.
-`car-shadow.png` is the car's footprint from above, blurred; `public/stills/*.webp` are frames of the two exploded
-views, shown where the 3D stage is not running.
+**Shadow and still**: `car-shadow.png` is the car's footprint from above, blurred. `public/stills/car-apart.webp` is a
+frame of the exploded view (1440×900, the page hidden, cropped to the car), shown where the 3D stage is not running.

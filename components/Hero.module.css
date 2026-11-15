@@ -1,14 +1,33 @@
-/* header + headline: one screen tall when the page moves, so the car has the lower part of it */
+/* header + headline: one screen tall when the page moves; the 3D car fills it from behind */
 .start { position: relative; z-index: 1; background: var(--p-bg); }
 :global(html.motion) .start { display: flex; flex-direction: column; min-height: 100svh; }
 :global(html[data-stage="on"]) .start { background: transparent; }
 
-.hero { position: relative; flex: 1; padding-block: clamp(16px, 3vw, 40px) clamp(40px, 6vw, 72px); }
-.inner { position: relative; container-type: inline-size; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; }
+/* the header is a solid bar: the track, and the car when it leaves up the screen, pass under it */
+.bar { position: relative; z-index: 3; background: var(--p-bg); }
+
+/* clipped, so the words that float up slide away under the gantry instead of over the header */
+.hero { position: relative; flex: 1; padding-bottom: clamp(40px, 6vw, 72px); overflow: clip; }
+
+/* a shade between the car and the words. It is never thinner than 70% under the headline, which keeps the white
+   type above 4.5:1 even over the palest part of the car, the kerb or the start line. --text-end is measured by
+   Hero.tsx: the end of the longest line when the car lies across the screen (the shade runs left to right and
+   clears over the front wing), the foot of the headline when the car runs up it (the shade runs top to bottom). */
+.scrim { display: none; }
+:global(html[data-stage="on"]) .scrim {
+  display: block; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  --end: var(--text-end, 68%);
+  background: linear-gradient(90deg, rgba(18, 20, 24, 0.8) 0, rgba(18, 20, 24, 0.7) var(--end), rgba(18, 20, 24, 0.14) calc(var(--end) + 17%), rgba(18, 20, 24, 0) calc(var(--end) + 30%));
+}
+.start[data-grid="up"] .scrim {
+  --end: var(--text-end, 42%);
+  background: linear-gradient(180deg, rgba(18, 20, 24, 0.82) 0, rgba(18, 20, 24, 0.72) var(--end), rgba(18, 20, 24, 0.16) calc(var(--end) + 13%), rgba(18, 20, 24, 0) calc(var(--end) + 24%));
+}
+
+.inner { position: relative; z-index: 1; container-type: inline-size; padding-top: 118px; }
 
 .title {
-  flex: 0 0 100%; order: 3;
-  margin-top: clamp(4px, 1.2vw, 12px);
+  margin-top: clamp(10px, 1.6vw, 20px);
   font: italic 900 clamp(2.5rem, 13.6cqi, 8.6rem)/0.86 var(--font-poster);
   letter-spacing: -0.015em;
   text-transform: uppercase;
@@ -20,22 +39,67 @@
   will-change: transform;
 }
 .lineIn { display: block; padding-right: 0.08em; }
-.red { color: var(--p-red); }
 :global(html.motion:not(.hero-ready)) .lineIn { transform: translateY(110%); }
 
-/* start gantry: five columns, two lights each */
-.gantryWrap { order: 2; margin-left: auto; display: grid; gap: 8px; justify-items: end; flex-shrink: 0; }
-.gantry { display: flex; gap: 8px; padding: 10px; background: #050607; border: 1px solid #2c3139; border-radius: 10px; }
-.unit { display: grid; gap: 6px; padding: 6px; background: #0b0d10; border-radius: 6px; }
-.light { position: relative; display: block; width: clamp(18px, 2.2vw, 32px); aspect-ratio: 1; border-radius: 50%; background: #24272c; }
-.light i { position: absolute; inset: 0; border-radius: 50%; background: var(--t-red); opacity: 0; }
-.hint { position: relative; display: none; font: 600 0.9rem/1.2 var(--font-tele); color: var(--p-muted); text-align: right; min-height: 1.2em; }
-:global(html.motion) .hint { display: block; }
-.go { position: absolute; right: 0; top: 0; font-family: var(--font-mono); color: var(--p-red); opacity: 0; white-space: nowrap; }
+/* the last line rides on a red plate: white on #c1121f reads on anything the car puts behind it */
+.plate {
+  display: inline-block; margin-top: 0.07em;
+  background: var(--p-red-fill); color: #fff;
+  padding: 0.03em 0.16em 0.07em 0.12em;
+  transform: skewX(var(--skew)); transform-origin: left bottom;
+}
+.plate > span { display: inline-block; transform: skewX(calc(-1 * var(--skew))); }
 
-/* wide screens: the gantry hangs top right, beside the headline, so the headline starts higher and the car gets the room below */
+/* start gantry, after the real thing: a steel beam right across the track, a lighter rail hung under it,
+   and five black housings on the rail, each with one round lamp of LEDs */
+.gantry {
+  position: absolute; z-index: 2; left: 0; right: 0; top: 0; pointer-events: none;
+  --u: clamp(38px, 4.6vw, 70px); --gap: clamp(5px, 0.7vw, 10px); --drop: clamp(18px, 2.2vw, 32px);
+}
+.beam {
+  position: absolute; left: 0; right: 0; top: 0; height: 20px;
+  background: linear-gradient(#5a616c 0 1px, #353a43 1px 4px, #23272e 4px 15px, #101216 15px 19px, #000 19px 20px);
+}
+.rig {
+  position: absolute; top: 20px; right: max(var(--gutter), calc((100% - var(--maxw)) / 2));
+  display: flex; gap: var(--gap);
+  padding: var(--drop) 12px 0;
+}
+/* the rail, and the two rods that hold it to the beam */
+.rig::before {
+  content: ""; position: absolute; left: 0; right: 0; top: calc(var(--drop) * 0.4); height: 5px;
+  background: linear-gradient(#444a53, #15181c);
+}
+.rig::after {
+  content: ""; position: absolute; left: 10%; right: 10%; top: 0; height: calc(var(--drop) * 0.4);
+  border-inline: 5px solid #1b1e23;
+}
+.unit {
+  position: relative; display: block;
+  width: var(--u); aspect-ratio: 1;
+  background: #050607; border: 1px solid #2a2e35; border-radius: 3px;
+}
+/* each housing hangs from the rail on a pair of brackets */
+.unit::after {
+  content: ""; position: absolute; left: 22%; right: 22%; bottom: 100%; height: calc(var(--drop) * 0.6 - 4px);
+  border-inline: 3px solid #262a31;
+}
+/* the lamp: a round cluster of LEDs, dark until it is switched on */
+.unit::before, .unit i {
+  content: ""; position: absolute; inset: 9%; border-radius: 50%;
+  background-size: 11.111% 11.111%; background-position: center;
+}
+.unit::before { background-color: #130a0b; background-image: radial-gradient(circle, #371619 0 34%, transparent 38%); }
+.unit i { background-color: #c80f1b; background-image: radial-gradient(circle, #ff5f52 0 36%, transparent 42%); opacity: 0; }
+.hint {
+  position: absolute; top: calc(20px + var(--drop) + var(--u) + 12px); right: max(var(--gutter), calc((100% - var(--maxw)) / 2));
+  display: none; font: 600 0.9rem/1.2 var(--font-tele); color: var(--p-ink); text-align: right; white-space: nowrap;
+}
+:global(html.motion) .hint { display: block; }
+.hint > span:first-child { background: rgba(11, 13, 16, 0.86); padding: 4px 8px; }
+.go { position: absolute; right: 0; top: 0; font-family: var(--font-mono); color: #fff; background: var(--p-red-fill); padding: 4px 8px; opacity: 0; }
+
 @media (min-width: 1024px) {
-  .inner { display: block; }
-  .title { font-size: clamp(5rem, 10.4cqi, 8.6rem); margin-top: clamp(16px, 2vw, 26px); }
-  .gantryWrap { position: absolute; right: 0; top: 0; }
+  .inner { padding-top: clamp(28px, 3vw, 44px); }
+  .title { font-size: clamp(5rem, 10.4cqi, 8.6rem); }
 }

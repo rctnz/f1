@@ -10,8 +10,8 @@ export type CarRig = {
   wheelRadius: number;
   /** absolute wheel angle in radians (distance rolled / radius) */
   spin: (angle: number) => void;
-  /** 0 = assembled, 1 = fully apart */
-  explode: (t: number) => void;
+  /** 0 = assembled, 1 = fully apart; the part under label `focus` eases a little further out by k */
+  explode: (t: number, focus?: number, k?: number) => void;
   /** where each label's leader line starts, in the order of CAR_PARTS (lib/data.ts) */
   anchors: Anchor[];
 };
@@ -182,12 +182,21 @@ export function buildCar(THREE: Three, model: T.Object3D, shadowMap: T.Texture, 
     spin(angle) {
       for (const p of pivots) p.rotation.z = -angle;
     },
-    explode(t) {
+    explode(t, focus = -1, fk = 0) {
       const T0 = clamp01(t) * (1 + STEP * LAST);
+      const lifted = focus >= 0 && fk > 0 ? anchors[focus]?.object : null;
       for (const name in groups) {
         const [x, y, z, k] = APART[name] ?? APART.floor;
         const e = inOut3(clamp01(T0 - k * STEP));
-        groups[name].position.set(x * e, y * e, z * e);
+        const g = groups[name];
+        g.position.set(x * e, y * e, z * e);
+        if (g === lifted) {
+          // a nudge along the way it already went (straight up for the floor, which never moved)
+          const len = Math.hypot(x, y, z);
+          const d = 0.16 * fk * clamp01(t);
+          if (len > 0) g.position.set(x * e + (x / len) * d, y * e + (y / len) * d, z * e + (z / len) * d);
+          else g.position.y = d;
+        }
       }
       if (groups.screws) groups.screws.visible = t < 0.01; // loose fasteners would hang where the body was
       shadowMat.opacity = 1 - 0.72 * smooth(0, 0.5, t);

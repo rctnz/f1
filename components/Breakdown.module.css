@@ -22,6 +22,10 @@
 a.t { background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-repeat; transition: background-size 180ms var(--ease), color 180ms var(--ease); }
 @media (hover: hover) and (pointer: fine) { a.t:hover { background-size: 100% 2px; color: var(--p-red); } }
 .s { font: 500 0.9rem/1.35 var(--font-mono); color: var(--p-muted); }
+/* the note under a label: why this part stands for this round */
+.note { display: block; position: relative; margin-top: 6px; }
+.full, .type { display: block; max-width: 34ch; font: 400 0.93rem/1.6 var(--font-body); color: #c9ced6; }
+.type { display: none; }
 
 /* stage on, wide: labels leave the flow and sit where their leader lines end */
 @media (min-width: 900px) {
@@ -30,6 +34,14 @@ a.t { background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-
   :global(html[data-stage="on"]) .leads :global(circle) { fill: var(--p-red); opacity: 0; }
   :global(html[data-stage="on"]) .labels { display: block; position: absolute; inset: 0; width: auto; margin: 0; pointer-events: none; }
   :global(html[data-stage="on"]) .label { position: absolute; left: 0; top: 0; width: 17.5rem; opacity: 0; visibility: hidden; pointer-events: auto; }
+  /* closed until the label is pointed at; the full sentence holds the space, the typed copy is drawn over it */
+  :global(html[data-stage="on"]) .note { height: 0; overflow: clip; margin-top: 0; }
+  :global(html[data-stage="on"]) .full { visibility: hidden; padding-block: 8px 6px; }
+  :global(html[data-stage="on"]) .type { display: block; position: absolute; left: 0; right: 0; top: 8px; }
+  :global(html[data-stage="on"]) .label[data-open=""] .type::after {
+    content: ""; display: inline-block; width: 0.5em; height: 1em; margin-left: 2px; vertical-align: -0.14em;
+    background: var(--p-red);
+  }
 }
 
 /* stage on, narrow: the model has the middle of the screen, the list sits under it, numbered markers ride on the parts */
@@ -40,6 +52,7 @@ a.t { background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-
   :global(html[data-stage="on"]) .label { opacity: 0; visibility: hidden; }
   :global(html[data-stage="on"]) .t { font-size: 1.12rem; }
   :global(html[data-stage="on"]) .s { font-size: 0.76rem; }
+  :global(html[data-stage="on"]) .note { display: none; }
   :global(html[data-stage="on"]) .pins { display: block; position: absolute; inset: 0; pointer-events: none; }
   :global(html[data-stage="on"]) .pin {
     position: absolute; left: 0; top: 0;

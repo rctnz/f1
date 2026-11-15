@@ -1,8 +1,8 @@
 import type * as T from "three";
-import { anchors, clamp01, emitStageFrame, gridFrameW, hooks, in2, inOut3, lerp, out3, smooth, stage, type Act, type Pt } from "@/lib/stage";
+import { anchors, clamp01, emitStageFrame, gridPPM, hooks, in2, inOut3, lerp, out3, smooth, stage, wheelStep, type Act, type Pt } from "@/lib/stage";
 import { makeGround } from "./ground";
 import { buildCar, type CarRig } from "./car";
-import { buildWheel, type Display, type WheelRig } from "./wheel";
+import { buildWheel, type WheelFaces, type WheelRig } from "./wheel";
 
 type Three = typeof import("three");
 type State = typeof stage;
@@ -57,7 +57,7 @@ export async function createScene(
   el: HTMLElement,
   base: string,
   ticker: { add: (fn: () => void) => void; remove: (fn: () => void) => void },
-  display: Display,
+  faces: WheelFaces,
 ): Promise<Scene | null> {
   let renderer: T.WebGLRenderer;
   try {
@@ -87,9 +87,19 @@ export async function createScene(
   rim.position.set(-7, 4, -6);
   const kicker = new THREE.DirectionalLight(0xffffff, 0);
   kicker.position.set(-3, 5, -6);
-  scene.add(key, rim, kicker, new THREE.HemisphereLight(0xdfe6ff, 0x16181c, 0.4));
+  // a lamp close to the steering wheel: its reflection in the lacquer moves across the weave as the wheel turns
+  const lamp = new THREE.PointLight(0xffffff, 0, 0, 2);
+  lamp.position.set(-0.45, 0.75, 1.5);
+  scene.add(key, rim, kicker, lamp, new THREE.HemisphereLight(0xdfe6ff, 0x16181c, 0.4));
 
-  const ground = makeGround(THREE);
+  // the asphalt grain; a flat grey stands in if the picture fails to load
+  const asphalt = await new THREE.TextureLoader().loadAsync(`${base}/models/asphalt.webp`).catch(() => {
+    const flat = new THREE.DataTexture(new Uint8Array([120, 120, 120, 255]), 1, 1);
+    flat.needsUpdate = true;
+    return flat as T.Texture;
+  });
+  asphalt.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const ground = makeGround(THREE, asphalt);
   scene.add(ground.mesh);
 
   const camera = new THREE.PerspectiveCamera(24, 1, 0.1, 400);
@@ -120,16 +130,23 @@ export async function createScene(
   // ---- the car's shots -----------------------------------------------------------------------------------------
   function carShots() {
     const mobile = w < 768;
+    const up = stage.gridUp > 0;
+    // overhead: the lane fills the screen and the car fills the lane. On an upright screen the shot is turned a
+    // quarter (az -90 puts the car's nose at the top), so the car is as long as the screen is tall.
     const GRID: Pose = {
-      az: 0, el: rad(89.4), frameW: gridFrameW(w), fov: 18, tx: 0, ty: 0, tz: 0,
-      sx: stage.gridX > 0 ? clamp01(stage.gridX / w) : mobile ? 0.5 : 0.61,
-      sy: stage.gridY > 0 ? clamp01(stage.gridY / h) : mobile ? 0.8 : 0.73,
+      az: up ? -Math.PI / 2 : 0, el: rad(89.4), frameW: w / (stage.gridPpm > 0 ? stage.gridPpm : gridPPM(w, h, 104, up)), fov: 18, tx: 0, ty: 0, tz: 0,
+      sx: stage.gridX > 0 ? clamp01(stage.gridX / w) : up ? 0.5 : 0.44,
+      sy: stage.gridY > 0 ? clamp01(stage.gridY / h) : mobile ? 0.55 : 0.56,
     };
-    const SIDE: Pose = { az: 0, el: rad(7), frameW: mobile ? 7.6 : clamp(w / 125, 9.5, 13.5), fov: 24, tx: 0, ty: 0.55, tz: 0, sx: mobile ? 0.5 : 0.67, sy: mobile ? 0.72 : 0.57 };
+    // beside the lap's words on a wide screen; under them where the page stacks (the same 1024px as Season.module.css)
+    const stacked = w < 1024;
+    const SIDE: Pose = { az: 0, el: rad(7), frameW: mobile ? 7.6 : stacked ? 9.2 : clamp(w / 125, 9.5, 13.5), fov: 24, tx: 0, ty: 0.55, tz: 0, sx: stacked ? 0.5 : 0.67, sy: stacked ? 0.72 : 0.57 };
     const calY = stage.calY > 0 ? clamp01(stage.calY / h) : 0.86;
     const CAL: Pose = { az: 0, el: rad(5), frameW: w / 100, fov: 22, tx: 0, ty: 0.5, tz: 0, sx: 0.5, sy: calY };
-    const PIT: Pose = { az: rad(35), el: rad(30), frameW: mobile ? 7.5 : clamp(w / 140, 8.6, 11.6), fov: 26, tx: 0, ty: 0.45, tz: 0, sx: mobile ? 0.5 : 0.36, sy: mobile ? 0.44 : 0.52 };
-    return { GRID, SIDE, CAL, PIT, mobile };
+    // the car apart is about 4.5 m tall on screen: on a short, wide screen the height sets the scale, not the width,
+    // and it sits a little lower, clear of the heading
+    const PIT: Pose = { az: rad(35), el: rad(30), frameW: mobile ? 7.5 : Math.max(clamp(w / 140, 8.6, 11.6), 5.8 * (w / h)), fov: 26, tx: 0, ty: 0.45, tz: 0, sx: mobile ? 0.5 : 0.36, sy: mobile ? 0.44 : 0.52 + clamp((760 - h) / 1200, 0, 0.06) };
+    return { GRID, SIDE, CAL, PIT, mobile, stacked, up };
   }
 
   /** beyond the right-hand edge of what pose p shows, with room for the whole car */
@@ -138,7 +155,10 @@ export async function createScene(
 
   function applyCar(s: State) {
     if (!car) return;
-    const { GRID, SIDE, CAL, PIT, mobile } = carShots();
+    const { GRID, SIDE, CAL, PIT, mobile, stacked, up } = carShots();
+    // how far the car must go to be out of the picture: off the top of the turned grid shot, off the right of any other
+    const offTop = GRID.frameW * (h / w) * GRID.sy + 3.4;
+    const clear = (q: Pose) => (up ? lerp(offTop, offRight(q), smooth(0, 0.4, s.chase)) : offRight(q));
 
     // camera: overhead -> side -> one lap -> low under the cards -> round to three-quarter
     let p = mixPose(GRID, SIDE, inOut3(s.chase));
@@ -152,7 +172,7 @@ export async function createScene(
     let x: number;
     if (s.toCal < 0.3) {
       const caught = out3(smooth(0.38, 1, s.chase));
-      x = lerp(in2(s.launch) * offRight(p) - (1 - s.arrive) * 12.5, 0, caught) + in2(s.away) * offRight(p);
+      x = lerp(in2(s.launch) * clear(p) - (1 - s.arrive) * 12.5, 0, caught) + in2(s.away) * offRight(p);
     } else {
       const xCal = (s.calX / w - 0.5) * CAL.frameW;
       x = lerp(offLeft(p), xCal, out3(smooth(0.45, 1, s.toCal)));
@@ -171,42 +191,73 @@ export async function createScene(
     const speed = smooth(0.1, 0.6, s.chase) * (1 - smooth(0, 0.75, s.pit));
     ground.uniforms.uTravel.value = travel;
     ground.uniforms.uSpeed.value = speed;
-    ground.uniforms.uMark.value = Math.min(16, in2(s.launch) * offRight(GRID));
+    ground.uniforms.uMark.value = Math.min(16, in2(s.launch) * (up ? offTop : offRight(GRID)));
     ground.uniforms.uCentre.value.set(p.tx, p.tz);
-    ground.uniforms.uNear.value = p.frameW * 1.1;
-    ground.uniforms.uFar.value = p.frameW * 2.6;
-    // keep the paint out from behind the words: the left column beside the lap, the label column beside the exploded view
-    const beside = inOut3(s.chase) * (1 - smooth(0, 0.6, s.toCal)) * (1 - kPit);
+    // the lane fades out beyond what the shot shows; the turned grid shot shows more of it, along the screen's height
+    const reach = up ? lerp(Math.max(1, h / w), 1, inOut3(s.chase)) : 1;
+    ground.uniforms.uNear.value = p.frameW * 1.1 * reach;
+    ground.uniforms.uFar.value = p.frameW * 2.6 * reach;
+    // keep the paint out from behind the words: the lap's words (a column on the left, or a block above the car),
+    // and the label column beside the exploded view
+    const words = (1 - smooth(0, 0.6, s.toCal)) * (1 - kPit); // the lap's words are on screen
     const mx = ground.uniforms.uMaskX.value;
     const my = ground.uniforms.uMaskY.value;
-    if (w >= 768) {
-      mx.set(lerp(-1, 0.33, beside), lerp(-0.5, 0.5, beside), lerp(2, 0.56, kPit), lerp(3, 0.7, kPit));
-      my.set(-1, -0.5, 2, 3);
+    const band = ground.uniforms.uBandY.value;
+    const box = ground.uniforms.uBox.value;
+    // the exploded view's heading ends about 250px down: the far end of the lane fades out before it gets there
+    const headFoot = 250 / h;
+    // either way the clear patch rides up with the section: its top edge is a screen down when the chase starts
+    const top = 1 - clamp01(s.chase);
+    const k = s.chase > 0 ? words : 0;
+    if (!stacked) {
+      box.set(lerp(-1, 0.33, k), lerp(-0.5, 0.5, k), top - 0.06, top);
+      mx.set(-1, -0.5, lerp(2, 0.56, kPit), lerp(3, 0.7, kPit));
+      my.set(lerp(-1, headFoot, kPit), lerp(-0.5, headFoot + 90 / h, kPit), 2, 3);
+      band.set(-2, -1.5, -1, -0.5);
     } else {
-      mx.set(-1, -0.5, 2, 3);
-      my.set(lerp(-1, 0.34, Math.max(beside, kPit * 0.6)), lerp(-0.5, 0.48, Math.max(beside, kPit * 0.6)), lerp(2, 0.6, kPit), lerp(3, 0.7, kPit));
+      box.set(-1, -0.5, 2, 3);
+      band.set(top - 0.06, top, lerp(-1, top + 0.34, k), lerp(-0.5, top + 0.48, k));
+      if (mobile) {
+        mx.set(-1, -0.5, 2, 3);
+        my.set(lerp(-1, 0.34, kPit * 0.6), lerp(-0.5, 0.48, kPit * 0.6), lerp(2, 0.6, kPit), lerp(3, 0.7, kPit));
+      } else {
+        mx.set(-1, -0.5, lerp(2, 0.56, kPit), lerp(3, 0.7, kPit));
+        my.set(lerp(-1, headFoot, kPit), lerp(-0.5, headFoot + 90 / h, kPit), 2, 3);
+      }
     }
 
     car.root.position.set(x, 0, 0);
     car.spin((x + travel) / car.wheelRadius);
-    car.explode(ex);
+    car.explode(ex, s.focus, s.focusK);
   }
 
   // ---- the steering wheel's shots ------------------------------------------------------------------------------
+  /** how far the wheel is turned on each beat of the roll call: straight for the team, then a corner for each driver */
+  const STEER = [0, 0.5, -0.5, 0.36, -0.36];
   function applyWheel(s: State) {
     if (!wheel) return;
     const mobile = w < 768;
-    const k = clamp01(s.wheelIn);
-    const ex = clamp01(s.wheelExplode);
-    const kx = smooth(0, 1, ex);
-    // arrives face-on, then lies back like a part on a bench while its layers lift apart
-    const FRONT: Pose = { az: rad(-12), el: rad(6), frameW: mobile ? 1.9 : clamp(w / 480, 2.6, 3.6), fov: 24, tx: 0, ty: 0, tz: 0, sx: mobile ? 0.5 : 0.4, sy: mobile ? 0.36 : 0.54 };
-    const APART: Pose = { ...FRONT, az: rad(-33), el: rad(27), frameW: FRONT.frameW * (mobile ? 1.5 : 1.42), ty: 0.07 };
-    setCamera(mixPose(FRONT, APART, kx));
-    wheel.root.position.set(0, lerp(0.5, 0, out3(k)), 0);
-    wheel.root.scale.setScalar(lerp(0.9, 1, out3(k)));
-    wheel.pose(lerp(rad(-150), 0, out3(k)), kx);
-    wheel.explode(ex);
+    // as wide as the column beside the roll call allows, and no taller, turned into a corner, than two thirds of the screen
+    const frameW = mobile ? 1.45 : Math.max(clamp(w / 620, 2.1, 2.9), 1.45 * (w / h));
+    const kin = out3(clamp01(s.wheelIn));
+    const { k, f, face } = wheelStep(s.wheelBeat, STEER.length - 1);
+    // it turns into each corner over the first half of the beat, and holds the lock for the rest
+    const steer = lerp(STEER[Math.max(0, k - 1)], STEER[k], inOut3(clamp01(f / 0.5)));
+    // each driver is called like a gear change: their button goes in, the mode dial clicks on, the wheel kicks back
+    const called = k > 0;
+    const kick = called ? Math.sin(Math.PI * clamp01((f - 0.12) / 0.2)) : 0;
+    setCamera({ az: rad(-10) - steer * 0.22, el: rad(7), frameW, fov: 24, tx: 0, ty: 0, tz: 0, sx: mobile ? 0.5 : 0.67, sy: mobile ? 0.46 : 0.55 });
+    // it comes and goes with the page: one screen under its place while the section arrives, one screen over it as
+    // the section leaves, at the page's own speed, so it never crosses the heading. It turns to face us on the way in.
+    const ride = (clamp01(s.wheelOut) - (1 - clamp01(s.wheelIn))) * h * (frameW / w);
+    wheel.root.position.set(0, ride, -0.06 * kick);
+    wheel.root.scale.setScalar(lerp(0.86, 1, kin) * (1 - 0.02 * kick));
+    wheel.pose(steer, lerp(rad(-120), 0, kin) - steer * 0.3, rad(-11));
+    wheel.show(face);
+    wheel.press(k - 1, called ? smooth(0.1, 0.2, f) * (1 - smooth(0.34, 0.5, f)) : 0);
+    wheel.click(called ? k - 1 + smooth(0.12, 0.3, f) : 0);
+    // the shift lights climb through each beat and drop on the change, like a run through the gears
+    wheel.rev(smooth(0.06, 0.72, f) * kin);
   }
 
   // ---- labels --------------------------------------------------------------------------------------------------
@@ -228,10 +279,6 @@ export async function createScene(
       applyCar({ ...stage, chase: 1, orbit: 1, away: 1, toCal: 1, pit: 1, explode: 1 });
       scene.updateMatrixWorld(true);
       project(car.anchors, out);
-    } else if (act === "wheel" && wheel) {
-      applyWheel({ ...stage, wheelIn: 1, wheelExplode: 1 });
-      scene.updateMatrixWorld(true);
-      project(wheel.anchors, out);
     }
     last = ""; // put the real picture back on the next frame
     return out;
@@ -244,7 +291,7 @@ export async function createScene(
   // ---- frame ---------------------------------------------------------------------------------------------------
   const sig = () => {
     const s = stage;
-    return [s.act, s.arrive, s.gridX, s.gridY, s.launch, s.chase, s.orbit, s.away, s.toCal, s.calX, s.calY, s.calRun, s.pit, s.explode, s.wheelIn, s.wheelExplode].map((n) => (typeof n === "number" ? n.toFixed(4) : n)).join("|") + `|${w}x${h}|${car ? 1 : 0}${wheel ? 1 : 0}`;
+    return [s.act, s.arrive, s.gridX, s.gridY, s.gridPpm, s.gridUp, s.launch, s.chase, s.orbit, s.away, s.toCal, s.calX, s.calY, s.calRun, s.pit, s.explode, s.focus, s.focusK, s.wheelIn, s.wheelBeat, s.wheelOut].map((n) => (typeof n === "number" ? n.toFixed(4) : n)).join("|") + `|${w}x${h}|${car ? 1 : 0}${wheel ? 1 : 0}`;
   };
   let onScreen = true;
   const frame = () => {
@@ -256,15 +303,17 @@ export async function createScene(
     if (car) car.root.visible = !isWheel;
     if (wheel) wheel.root.visible = isWheel;
     ground.mesh.visible = !isWheel;
-    // the wheel is black on a dark page: more of the room and a hard light from behind pick out its edges
-    scene.environmentIntensity = isWheel ? 1.5 : 0.62;
-    kicker.intensity = isWheel ? 3.2 : 0;
+    // the wheel is black on a dark page: more of the room, turned so its bright wall is not what the flat face
+    // mirrors, a hard light from behind for the edges and the lamp for a soft mark on the lacquer
+    scene.environmentIntensity = isWheel ? 1.0 : 0.62;
+    scene.environmentRotation.y = isWheel ? 4.8 : 0;
+    kicker.intensity = isWheel ? 3.4 : 0;
+    lamp.intensity = isWheel ? 7 : 0;
     if (isWheel) applyWheel(stage);
     else applyCar(stage);
     scene.updateMatrixWorld(true);
     renderer.render(scene, camera);
     if (car && !isWheel) project(car.anchors, anchors.car);
-    if (wheel && isWheel) project(wheel.anchors, anchors.wheel);
     emitStageFrame();
   };
 
@@ -310,16 +359,11 @@ export async function createScene(
     return null;
   }
 
-  loader
-    .loadAsync(`${base}/models/wheel.glb`)
-    .then((gltf) => {
-      if (!alive) return;
-      wheel = buildWheel(THREE, gltf.scene, renderer.capabilities.getMaxAnisotropy(), display);
-      wheel.root.visible = false;
-      scene.add(wheel.root);
-      last = "";
-    })
-    .catch(() => {});
+  // the steering wheel is built here in code, so it is ready as soon as the car is
+  wheel = buildWheel(THREE, faces);
+  wheel.root.visible = false;
+  scene.add(wheel.root);
+  last = "";
 
   function cleanup() {
     alive = false;

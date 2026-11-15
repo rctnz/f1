@@ -13,7 +13,7 @@ import DriverTags from "@/components/DriverTags";
 import Footer from "@/components/Footer";
 import ProgressBar from "@/components/ProgressBar";
 import SmoothScroll from "@/components/SmoothScroll";
-import { BASE, CAR_PARTS, DRIVERS, ROUNDS, WHEEL_PARTS } from "@/lib/data";
+import { BASE, CAR_PARTS, DRIVERS, ROUNDS } from "@/lib/data";
 
 const EXT = ["jpg", "jpeg", "png", "webp"];
 
@@ -43,11 +43,10 @@ export default function Page() {
         <Season cover={photos.cover} />
         <Calendar photos={photos} />
         <Breakdown
-          act="car"
           id="machine"
           kicker={["A10", "EXPLODED VIEW"]}
           title="ผ่ารถ A10"
-          intro="หกชิ้นส่วน จับคู่กับหกสนามที่เรียน กดที่ป้ายเพื่อไปอ่านสนามนั้น"
+          intro="หกชิ้นส่วน จับคู่กับหกสนามที่เรียน ชี้ที่ป้ายเพื่ออ่านว่าทำไม กดเพื่อไปยังสนามนั้น"
           parts={CAR_PARTS}
           still={{ file: "car-apart.webp", width: 1280, height: 867 }}
         />
@@ -55,15 +54,6 @@ export default function Page() {
         <TimingSheet />
         <Handover from="tele" to="poster" />
         <Rounds photos={photos} />
-        <Breakdown
-          act="wheel"
-          id="wheel"
-          kicker={["STEERING WHEEL", "EXPLODED VIEW"]}
-          title="ในมือคนขับ"
-          intro="พวงมาลัยหนึ่งวง แยกออกเป็นชั้น แต่ละชั้นมีหน้าที่ของมัน"
-          parts={WHEEL_PARTS}
-          still={{ file: "wheel-apart.webp", width: 800, height: 1122 }}
-        />
         <DriverTags photos={photos} />
       </main>
       <Handover from="poster" to="tele" />

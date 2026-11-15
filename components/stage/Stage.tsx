@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
-import { BASE, FIN_COUNT, ROUNDS } from "@/lib/data";
+import { BASE, DRIVERS, FIN_COUNT, ROUNDS } from "@/lib/data";
 import { hooks, stage, STAGE_READY } from "@/lib/stage";
 import s from "./Stage.module.css";
 
@@ -29,6 +29,7 @@ export default function Stage() {
       const scene = await createScene(THREE, el, BASE, gsap.ticker, {
         done: FIN_COUNT,
         total: ROUNDS.length,
+        drivers: DRIVERS.map((d) => ({ no: d.no, first: d.firstEn, last: d.lastEn, color: d.color })),
         poster: css.getPropertyValue("--f-kanit").trim() || "sans-serif",
         mono: css.getPropertyValue("--f-jb").trim() || "monospace",
       });
@@ -41,6 +42,7 @@ export default function Stage() {
       if (process.env.NODE_ENV !== "production") Object.assign(window, { __stage: stage, __stageHooks: hooks }); // for poking at in the console
       document.documentElement.dataset.stage = "on";
       window.dispatchEvent(new Event(STAGE_READY));
+      ScrollTrigger.sort();
       ScrollTrigger.refresh();
     })();
 

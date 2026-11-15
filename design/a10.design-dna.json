@@ -95,9 +95,9 @@
       "personality_traits": ["direct", "mechanical", "proud of the work"],
       "adjectives": ["italic", "high-contrast", "engineered"]
     },
-    "visual_language": "heavy italic type against real 3D: track paint, a kerb, rubber laid at the start. Chrome stays flat and quiet so the car carries the colour.",
-    "composition": "words left, machine right; overhead on the grid, side-on at speed, three-quarter on the stand",
-    "imagery": "one F1 car and one steering wheel, both with every real brand mark removed and the team's A10 painted on; the team's own photos per round",
+    "visual_language": "heavy italic type over real 3D: grained asphalt, red and white kerbs, a chequered start line, rubber laid at the start. Chrome stays flat and quiet so the car carries the colour.",
+    "composition": "the headline lies over the car, which is as big as the screen (across a wide one, up an upright one), under a shade that ends where the words end; after that words left, machine right: side-on at speed, three-quarter on the stand",
+    "imagery": "one F1 car with every real brand mark removed and the team's A10 painted on; a steering wheel modelled in code for the driver roll call; the team's own photos per round",
     "interaction_feel": "scrubbing a film: every frame is a function of scroll, forwards and backwards",
     "brand_voice_in_ui": "Thai, plain, short; English only for round titles and race terms"
   },
@@ -105,7 +105,7 @@
     "overview": {
       "effect_intensity": "high on five pinned screens, none elsewhere",
       "performance_tier": "heavy (three.js) with a flat fallback",
-      "fallback_strategy": "no WebGL or prefers-reduced-motion: no stage, sections in normal flow, stills of both exploded views with plain numbered lists",
+      "fallback_strategy": "no WebGL or prefers-reduced-motion: no stage, sections in normal flow, a still of the exploded car with a plain numbered list and every note written out, no roll call",
       "primary_technology": "three.js 0.181 (plain, loaded after first paint), GSAP 3.15 ScrollTrigger, Lenis"
     },
     "background_effects": { "enabled": false, "notes": "the page colour is the asphalt; nothing decorative behind content" },
@@ -113,30 +113,30 @@
     "3d_elements": {
       "enabled": true,
       "renderer": "one fixed WebGLRenderer behind the page, alpha, DPR capped near four million pixels, drawn only when the scroll state changes",
-      "lighting": "RoomEnvironment through PMREM, key and rim directional lights, a back kicker for the wheel",
+      "lighting": "RoomEnvironment through PMREM, key and rim directional lights; for the steering wheel the room is turned, with a back kicker and one close lamp",
       "camera": "one perspective camera described as azimuth, elevation and metres across the screen; long lenses (18 to 26 degrees)",
-      "materials": "lacquered red paint with clearcoat, matt rubber, satin carbon; decals on a polygon offset",
-      "geometry": "car 183k triangles and wheel 49k, meshopt-compressed GLB with WebP textures",
+      "materials": "lacquered red paint with clearcoat, matt rubber, satin carbon; decals on a polygon offset; the wheel is lacquered twill carbon, sheened grips, flat-coloured caps",
+      "geometry": "car 183k triangles, meshopt-compressed GLB with WebP textures; the steering wheel is extruded and lathed in code, no file",
       "post_processing": "none",
       "interaction_model": "scroll only"
     },
-    "shader_effects": { "enabled": true, "notes": "one ground shader: grid slot, start line, kerb, tyre marks, speed streaks; antialiased with fwidth; screen-space keep-outs behind text" },
+    "shader_effects": { "enabled": true, "notes": "one ground shader: asphalt grain from a tileable texture, chequered start line, kerbs, tyre marks, speed streaks; antialiased with fwidth; screen-space keep-outs that follow the text" },
     "scroll_effects": {
       "parallax": { "enabled": true, "layers": 1, "depth_range": "small", "speed_curve": "linear; headline lines only" },
       "scroll_triggered_animations": {
         "enabled": true,
-        "trigger_points": ["hero pin: lights then launch", "13/16 pin: one lap of the camera", "calendar pin: horizontal run, car under the open card", "exploded car pin", "exploded wheel pin"],
+        "trigger_points": ["hero pin: words lift off the car, five lights, launch", "13/16 pin: one lap of the camera", "calendar pin: horizontal run, car under the open card", "exploded car pin", "driver roll call pin: the wheel turns into a corner for each driver"],
         "animation_type": "pinned, scrubbed camera and model state",
         "scrub_behavior": "scrub 0.5 to 0.6 seconds of smoothing; progress equals scroll"
       },
       "scroll_morphing": { "enabled": false }
     },
-    "text_effects": { "enabled": true, "notes": "headline lines rise from a clipped baseline; the 13/16 counter rolls digit columns" },
+    "text_effects": { "enabled": true, "notes": "headline lines rise from a clipped baseline and float off the car on scroll; the 13/16 counter rolls digit columns; exploded-view notes type themselves out, one grapheme at a time, when a label is pointed at" },
     "cursor_effects": { "enabled": false },
     "image_effects": { "enabled": true, "notes": "cover photo reveals with a clip-path wipe; calendar photos zoom 3% on hover" },
     "glassmorphism_neumorphism": { "enabled": false },
-    "canvas_drawings": { "enabled": true, "notes": "the steering wheel's display is drawn on a canvas from the site's own data (rounds done)" },
-    "svg_animations": { "enabled": true, "notes": "leader lines of the exploded views draw out from the part; the KMUTT track draws with DrawSVG" },
+    "canvas_drawings": { "enabled": true, "notes": "the steering wheel's dash, carbon weave and printed markings are drawn on canvases from the site's own data (rounds done, drivers)" },
+    "svg_animations": { "enabled": true, "notes": "leader lines of the exploded view draw out from the part; the KMUTT track draws with DrawSVG" },
     "composite_notes": "3D sits behind the DOM at z-index 0. Sections are either solid (they wipe the car away) or clear (the car shows through). No glow, no purple, no blur."
   }
 }

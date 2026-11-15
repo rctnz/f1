@@ -143,30 +143,20 @@ export const COVER_PHOTO = '/photos/cover.jpg';
 export const titleOf = (r: Round) => r.title ?? 'ใส่หัวข้อ';
 
 /** ป้ายของภาพแยกชิ้นส่วน: ลำดับต้องตรงกับจุดชี้ในโมเดล (components/stage/car.ts และ wheel.ts) ไม่เกิน 6 ป้าย */
-export type Part = { name: string; note: string; href?: string };
+export type Part = { name: string; note: string; href?: string; desc?: string };
 
-/** ชิ้นส่วนรถ 1 ชิ้น จับคู่กับสนามที่เรียน 1 สนาม กดที่ป้ายแล้วไปยังสนามนั้น */
-const paired = (name: string, week: number): Part => {
+/** ชิ้นส่วนรถ 1 ชิ้น จับคู่กับสนามที่เรียน 1 สนาม: ชี้ที่ป้ายเพื่ออ่านคำอธิบาย (desc) กดแล้วไปยังสนามนั้น */
+const paired = (name: string, week: number, desc: string): Part => {
   const r = ROUNDS[week - 1];
-  return { name, note: 'R' + r.nn + ' / ' + titleOf(r), href: '#round-' + r.nn };
+  return { name, note: 'R' + r.nn + ' / ' + titleOf(r), href: '#round-' + r.nn, desc };
 };
 export const CAR_PARTS: Part[] = [
-  paired('ปีกหน้า', 3), // Computer Aided Design: รูปทรงที่ต้องวาดก่อนสร้าง
-  paired('Halo', 11), // Network Security: ชิ้นที่มีไว้ป้องกัน
-  paired('ห้องคนขับ', 4), // Basic Embedded Systems: ปุ่มและวงจรบนพวงมาลัย
-  paired('เครื่องยนต์', 7), // Programming Concept: สิ่งที่ทำให้รถวิ่ง
-  paired('ยาง', 12), // Operating Systems: ชั้นที่อยู่ระหว่างรถกับพื้น
-  paired('พื้นรถ', 2), // Working Foundation: ฐานที่ทุกชิ้นวางอยู่
-];
-
-/** พวงมาลัย: แต่ละชั้นทำหน้าที่อะไร */
-export const WHEEL_PARTS: Part[] = [
-  { name: 'จอ', note: FIN_COUNT + '/' + ROUNDS.length + ' สนามที่จบแล้ว' },
-  { name: 'ปุ่มหมุน', note: 'ปรับโหมดรถระหว่างขับ' },
-  { name: 'ปุ่มกด', note: 'TALK, PL, N, OT, BB+ และ BB-' },
-  { name: 'มือจับ', note: 'จับสองมือ ซ้ายและขวา' },
-  { name: 'แป้นหลัง', note: 'เปลี่ยนเกียร์ และคลัตช์ตอนออกตัว' },
-  { name: 'ขั้วปลดเร็ว', note: 'ถอดพวงมาลัยเพื่อเข้าออกรถ' },
+  paired('ปีกหน้า', 3, 'ปีกหน้ากำหนดว่าลมจะไหลผ่านทั้งคันอย่างไร รูปทรงแบบนี้ต้องเขียนแบบก่อนสร้างจริง เหมือนที่เราฝึกใน LibreCAD และ TinkerCAD'),
+  paired('Halo', 11, 'Halo คือโครงที่ป้องกันศีรษะคนขับ สนามนี้ก็เป็นเรื่องการป้องกันเหมือนกัน คือป้องกันระบบจากภัยคุกคามทางไซเบอร์'),
+  paired('ห้องคนขับ', 4, 'ปุ่มและจอบนพวงมาลัยทำงานด้วยไมโครคอนโทรลเลอร์ สนามนี้เราเริ่มรู้จักระบบฝังตัวผ่านบอร์ด ESP32'),
+  paired('เครื่องยนต์', 7, 'เครื่องยนต์คือสิ่งที่ทำให้รถวิ่ง เหมือนโปรแกรมที่ทำให้ระบบทำงาน สนามนี้คือพื้นฐานการเขียนโปรแกรม'),
+  paired('ยาง', 12, 'ยางเป็นชิ้นเดียวที่แตะพื้นถนน เหมือนระบบปฏิบัติการที่อยู่ระหว่างโปรแกรมกับเครื่อง สนามนี้เราได้ลองใช้ Linux ผ่าน Virtual Machine'),
+  paired('พื้นรถ', 2, 'พื้นรถคือฐานที่ทุกชิ้นยึดอยู่ สนามนี้ก็เป็นฐานเหมือนกัน คือการทำงานเป็นทีม ซึ่งทุกโปรเจกต์หลังจากนั้นต้องใช้'),
 ];
 
 /** เครดิตโมเดล 3D: ชื่อผลงาน ผู้สร้าง และสัญญาอนุญาต ตามข้อมูลที่ฝังมาในไฟล์ที่ดาวน์โหลดจาก Sketchfab */
@@ -182,15 +172,5 @@ export const MODEL_CREDITS: ModelCredit[] = [
     license: 'CC BY 4.0',
     licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
     note: 'ทีม A10 ดัดแปลง: ลบโลโก้ ใส่ลาย A10 และแยกชิ้นส่วน',
-  },
-  {
-    what: 'พวงมาลัย',
-    title: 'F1 Steering Wheel W11',
-    source: 'https://sketchfab.com/3d-models/f1-steering-wheel-w11-97e6f81365714a78a784c4bc92903b7b',
-    author: 'pawel7557',
-    profile: 'https://sketchfab.com/pawel7557',
-    license: 'Sketchfab Standard License',
-    licenseUrl: 'https://sketchfab.com/licenses',
-    note: 'ไม่อนุญาตให้นำไฟล์โมเดลไปใช้หรือเผยแพร่ต่อ',
   },
 ];

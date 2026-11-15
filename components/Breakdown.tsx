@@ -3,17 +3,16 @@
 import { useRef } from "react";
 import { gsap, MOTION, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { BASE, type Part } from "@/lib/data";
-import { anchors, hooks, isStageOn, onStageFrame, smooth, stage, whenStageReady, type Act } from "@/lib/stage";
+import { anchors, hooks, isStageOn, onStageFrame, smooth, stage, whenStageReady } from "@/lib/stage";
 import s from "./Breakdown.module.css";
 
 type Props = {
-  act: Act;
   id: string;
   /** mono header, e.g. ["A10", "EXPLODED VIEW"] */
   kicker: [string, string];
   title: string;
   intro: string;
-  /** one label per anchor of the model, in the model's anchor order */
+  /** one label per anchor of the car, in the model's anchor order (components/stage/car.ts) */
   parts: Part[];
   /** the picture shown where the 3D stage is not running: file in public/stills, and its pixel size */
   still: { file: string; width: number; height: number };
@@ -22,13 +21,20 @@ type Props = {
 const WIDE = 900; // from here up there is room for a label column and leader lines
 const SVG = "http://www.w3.org/2000/svg";
 
+/** text split so a Thai vowel or tone mark never arrives without its consonant */
+function graphemes(text: string): string[] {
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) return Array.from(new Intl.Segmenter("th", { granularity: "grapheme" }).segment(text), (g) => g.segment);
+  return Array.from(text);
+}
+
 /**
- * An exploded view, after the /breakdown skill: the model comes apart layer by layer, then every part gets a
+ * The car's exploded view, after the /breakdown skill: it comes apart group by group, then every part gets a
  * leader line and a numbered label in a column on the right, numbered top to bottom as they sit on screen.
- * Here the timeline is the scroll: the section pins, the parts lift, the lines draw, and on the way out it all
- * goes back together. Without the 3D stage the labels are a plain list.
+ * The timeline is the scroll: the section pins, the parts lift, the lines draw, and it all goes back together
+ * on the way out. Pointing at a label (or tabbing to it) types out what the pairing means and eases that part
+ * a little further out. Without the 3D stage the labels are a plain list under a still.
  */
-export default function Breakdown({ act, id, kicker, title, intro, parts, still }: Props) {
+export default function Breakdown({ id, kicker, title, intro, parts, still }: Props) {
   const ref = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -41,6 +47,8 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
       mm.add(MOTION, () => {
         const labels = q("[data-label]") as HTMLElement[];
         const pins = q("[data-pin]") as HTMLElement[];
+        const notes = labels.map((l) => l.querySelector("[data-note]") as HTMLElement | null);
+        const typed = labels.map((l) => l.querySelector("[data-type]") as HTMLElement | null);
         const svg = q("[data-leads]")[0] as unknown as SVGSVGElement;
         const n = labels.length;
         const lines: SVGPolylineElement[] = [];
@@ -55,6 +63,7 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
         }
 
         const local = { lab: 0 }; // 0 → 1: leader lines drawn and labels in
+        const open = { i: -1, h: 0 }; // the label being pointed at, and how far its note has opened (px)
         let rank: number[] = []; // rank[i] = place of label i in screen order, top first
         let LX = 0;
         let LY: number[] = [];
@@ -64,7 +73,7 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
 
         // label column: numbered by where each part ends up on screen, spaced so no two labels collide
         const layout = () => {
-          const pts = hooks.layout?.(act);
+          const pts = hooks.layout?.("car");
           if (!pts || pts.length < n) return;
           const w = window.innerWidth;
           const h = window.innerHeight;
@@ -82,7 +91,12 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
             const colW = labels[0].offsetWidth || 280;
             const gutter = Math.max(32, (w - Math.min(w - 64, 1280)) / 2);
             LX = Math.round(Math.min(w - colW - gutter - 22, Math.max(w * 0.62, Math.max(...pts.map((p) => p.x)) + 120)));
-            const gap = Math.max(88, labels[0].offsetHeight + 22);
+            // the column starts under the heading line and keeps room below the last label for one note to open;
+            // on a short screen the labels close up (never closer than one label), and then the note's room gives way
+            const TOP = 104;
+            const LABEL = 60;
+            const NOTE = 100;
+            const gap = Math.max(70, Math.min(88, (h - TOP - LABEL - NOTE - 12) / (n - 1)));
             const out: number[] = [];
             let prev = -1e9;
             byY.forEach(([y, i]) => {
@@ -90,16 +104,17 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
               out[i] = yy;
               prev = yy;
             });
-            const over = Math.max(0, prev - (h - 112));
-            LY = out.map((y) => Math.max(120, y - over));
+            const over = Math.max(0, prev - (h - LABEL - NOTE - 12));
+            const lift = over - Math.max(0, TOP - (out[byY[0][1]] - over));
+            LY = out.map((y) => y - lift);
           }
           laid = true;
         };
 
-        // every frame the scene draws (and every step of the label timeline): pin lines and labels to the parts
+        // every frame the scene draws (and every step of the label and note timelines): pin lines and labels to the parts
         const draw = () => {
-          if (!near || stage.act !== act) return;
-          const pts = anchors[act];
+          if (!near || stage.act !== "car") return;
+          const pts = anchors.car;
           if (pts.length < n) return;
           if (!laid) layout();
           if (!laid) return;
@@ -113,8 +128,8 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
             label.style.visibility = la > 0.02 ? "visible" : "hidden";
             label.style.opacity = String(la);
             if (wide) {
-              // dot on the part -> elbow -> label, drawn out from the part
-              const ey = LY[i];
+              // labels under the open one step down to make room for its note
+              const ey = LY[i] + (open.i >= 0 && rank[i] > rank[open.i] ? open.h : 0);
               const mx = Math.max(ax + 40, LX - 90);
               const seg0 = Math.hypot(mx - ax, ey - ay);
               const seg1 = LX - mx;
@@ -126,9 +141,12 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
                 d += `${mx.toFixed(1)},${ey.toFixed(1)} ${(mx + rem).toFixed(1)},${ey.toFixed(1)}`;
               }
               lines[i].setAttribute("points", d);
-              lines[i].style.opacity = a > 0 ? "0.85" : "0";
+              const lit = open.i === i;
+              lines[i].style.opacity = a > 0 ? (open.i >= 0 && !lit ? "0.3" : "0.85") : "0";
+              lines[i].style.stroke = lit ? "#ff3b30" : "";
               dots[i].setAttribute("cx", ax.toFixed(1));
               dots[i].setAttribute("cy", ay.toFixed(1));
+              dots[i].setAttribute("r", lit ? "7" : "5");
               dots[i].style.opacity = a > 0 ? "1" : "0";
               label.style.transform = `translate(${(LX + 22 + 18 * (1 - la)).toFixed(1)}px, ${(ey - 11).toFixed(1)}px)`;
             } else {
@@ -148,11 +166,70 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
         const cancelReady = whenStageReady(relayout);
         ScrollTrigger.addEventListener("refresh", relayout);
 
+        // pointing at a label: its note opens and types itself out, and the part it names eases out of the car
+        let typing: gsap.core.Tween | null = null;
+        const setOpen = (i: number) => {
+          if (!wide || !isStageOn() || open.i === i) return;
+          typing?.kill();
+          const was = open.i;
+          if (was >= 0) {
+            if (notes[was]) notes[was]!.style.height = "0px";
+            if (typed[was]) typed[was]!.textContent = "";
+            labels[was].removeAttribute("data-open");
+          }
+          open.i = i;
+          open.h = 0;
+          gsap.killTweensOf(open);
+          stage.focus = i >= 0 ? i : stage.focus; // keep the part named while it eases back
+          gsap.to(stage, { focusK: i >= 0 ? 1 : 0, duration: 0.3, ease: "expo.out", overwrite: "auto" });
+          if (i < 0) {
+            draw();
+            return;
+          }
+          const note = notes[i];
+          const out = typed[i];
+          if (!note || !out) return;
+          labels[i].setAttribute("data-open", "");
+          const full = note.querySelector("[data-full]") as HTMLElement;
+          const target = full.offsetHeight;
+          gsap.to(open, {
+            h: target,
+            duration: 0.3,
+            ease: "expo.out",
+            onUpdate: () => {
+              note.style.height = `${open.h.toFixed(1)}px`;
+              draw();
+            },
+          });
+          const chars = graphemes(full.textContent ?? "");
+          const count = { n: 0 };
+          typing = gsap.to(count, {
+            n: chars.length,
+            duration: Math.min(1.5, chars.length * 0.017),
+            ease: "none",
+            onUpdate: () => {
+              out.textContent = chars.slice(0, Math.round(count.n)).join("");
+            },
+            onComplete: () => labels[i].setAttribute("data-open", "done"),
+          });
+        };
+        const onOver = (e: Event) => {
+          const li = (e.target as HTMLElement).closest("[data-label]") as HTMLElement | null;
+          if (li) setOpen(labels.indexOf(li));
+        };
+        const onOut = (e: Event) => {
+          const to = (e as MouseEvent | FocusEvent).relatedTarget as HTMLElement | null;
+          if (!to || !to.closest || !to.closest("[data-label]")) setOpen(-1);
+        };
+        const list = q("[data-labels]")[0];
+        list.addEventListener("pointerover", onOver);
+        list.addEventListener("pointerout", onOut);
+        list.addEventListener("focusin", onOver);
+        list.addEventListener("focusout", onOut);
+
         const vh = () => window.innerHeight;
-        // approach: while the section rises into place the camera comes round to the model
-        const arrive = act === "car" ? "pit" : "wheelIn";
-        const apart = act === "car" ? "explode" : "wheelExplode";
-        gsap.fromTo(stage, { [arrive]: 0 }, { [arrive]: 1, ease: "none", scrollTrigger: { trigger: root, start: "top bottom", end: "top top", scrub: 0.5 } });
+        // approach: while the section rises into place the camera comes round to the car
+        gsap.fromTo(stage, { pit: 0 }, { pit: 1, ease: "none", scrollTrigger: { trigger: root, start: "top bottom", end: "top top", scrub: 0.5 } });
         // on screen: from the first sliver of the section until the pin has let go and it has scrolled away
         ScrollTrigger.create({
           trigger: root,
@@ -160,11 +237,7 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
           end: () => "+=" + Math.round(vh() * 4.6),
           onToggle: (self) => {
             near = self.isActive;
-            if (act === "wheel") {
-              // the wheel has the stage for exactly that long
-              stage.act = near ? "wheel" : "car";
-              laid = false;
-            }
+            if (!near) setOpen(-1);
             hooks.invalidate?.();
           },
         });
@@ -175,17 +248,17 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
           scrollTrigger: {
             trigger: root,
             start: "top top",
-            end: () => "+=" + Math.round(vh() * 2.6),
+            end: () => "+=" + (isStageOn() ? Math.round(vh() * 2.6) : 0), // nothing comes apart without the stage, so no hold
             pin: true,
             scrub: 0.6,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
         });
-        tl.fromTo(stage, { [apart]: 0 }, { [apart]: 1, duration: 0.34 }, 0);
+        tl.fromTo(stage, { explode: 0 }, { explode: 1, duration: 0.34 }, 0);
         tl.fromTo(local, { lab: 0 }, { lab: 1, duration: 0.32, onUpdate: draw }, 0.24);
         tl.to(local, { lab: 0, duration: 0.08, onUpdate: draw }, 0.84);
-        tl.to(stage, { [apart]: 0, duration: 0.13 }, 0.87);
+        tl.to(stage, { explode: 0, duration: 0.13 }, 0.87);
 
         // the heading steps in as the section arrives
         const head = q("[data-head] > *");
@@ -203,13 +276,19 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
           offFrame();
           cancelReady();
           ScrollTrigger.removeEventListener("refresh", relayout);
+          list.removeEventListener("pointerover", onOver);
+          list.removeEventListener("pointerout", onOut);
+          list.removeEventListener("focusin", onOver);
+          list.removeEventListener("focusout", onOut);
+          typing?.kill();
+          gsap.killTweensOf(open);
           lines.forEach((l) => l.remove());
           dots.forEach((d) => d.remove());
-          const st = stage as unknown as Record<string, number>;
-          st[arrive] = 0;
-          st[apart] = 0;
-          if (act === "wheel") stage.act = "car";
-          [...labels, ...pins].forEach((el) => el.removeAttribute("style"));
+          stage.pit = stage.explode = stage.focusK = 0;
+          stage.focus = -1;
+          [...labels, ...pins, ...(notes.filter(Boolean) as HTMLElement[])].forEach((el) => el.removeAttribute("style"));
+          labels.forEach((l) => l.removeAttribute("data-open"));
+          typed.forEach((t) => t && (t.textContent = ""));
         };
       });
     },
@@ -241,20 +320,29 @@ export default function Breakdown({ act, id, kicker, title, intro, parts, still 
           ))}
         </div>
 
-        <ol className={`wrap ${s.labels}`}>
+        <ol className={`wrap ${s.labels}`} data-labels>
           {parts.map((p, i) => (
             <li key={p.name} className={s.label} data-label>
               <span className={s.n} data-n aria-hidden="true">
                 {String(i + 1).padStart(2, "0")}
               </span>
               {p.href ? (
-                <a className={s.t} href={p.href}>
+                <a className={s.t} href={p.href} aria-describedby={p.desc ? `${id}-note-${i}` : undefined}>
                   {p.name}
                 </a>
               ) : (
                 <span className={s.t}>{p.name}</span>
               )}
               <span className={s.s}>{p.note}</span>
+              {p.desc && (
+                <span className={s.note} data-note>
+                  {/* the whole sentence sets the size (and is what a screen reader gets); the typed copy is drawn over it */}
+                  <span className={s.full} id={`${id}-note-${i}`} data-full>
+                    {p.desc}
+                  </span>
+                  <span className={s.type} data-type aria-hidden="true" />
+                </span>
+              )}
             </li>
           ))}
         </ol>

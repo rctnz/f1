@@ -12,8 +12,10 @@ export const stage = {
   // hero: overhead on the grid slot, camera still
   arrive: 1, // on load the car rolls forward into its slot (0 = still behind it)
   launch: 0, // lights out: the car leaves the slot and the frame
-  gridX: 0, // px: where the slot sits on screen, measured from the headline (0 = let the scene choose)
+  gridX: 0, // px: where the car sits on screen in the overhead shot (0 = let the scene choose)
   gridY: 0,
+  gridPpm: 0, // px per metre in that shot (0 = let the scene choose)
+  gridUp: 0, // 1 on an upright screen: the shot is turned a quarter, so the car points up the screen
 
   // 13/16: the camera drops to the side and catches the car, then laps it
   chase: 0,
@@ -29,10 +31,13 @@ export const stage = {
   // exploded view of the car
   pit: 0, // camera comes round to the three-quarter view
   explode: 0,
+  focus: -1, // which labelled part the pointer is on (-1 = none)
+  focusK: 0, // 0 → 1: that part eases a little further out
 
-  // exploded view of the steering wheel
-  wheelIn: 0,
-  wheelExplode: 0,
+  // steering wheel beside the driver roll call
+  wheelIn: 0, // the section arriving: the wheel comes up with the page and turns to face the camera
+  wheelBeat: 0, // 0 → 5: one beat for the team, then one for each driver
+  wheelOut: 0, // the section leaving: the wheel goes up with the page
 };
 
 export type Act = "car" | "wheel";
@@ -77,8 +82,23 @@ export function whenStageReady(fn: () => void) {
   return () => window.removeEventListener(STAGE_READY, on);
 }
 
-/** metres across the screen in the overhead grid shot: the car takes about a third of a wide screen, most of a phone */
-export const gridFrameW = (w: number) => (w < 768 ? 7.4 : Math.min(17, Math.max(11.5, w / 95)));
+/** an upright screen (a phone, a tablet held upright): the grid shot is turned so the car runs up the screen */
+export const gridIsUp = (w: number, h: number, top = 104) => h - top > w * 1.15;
+
+/**
+ * px per metre in the overhead grid shot: the lane and its two kerbs (4 m) across the short way of the space
+ * under the header, unless the car and the start line (7.1 m) would then not fit the long way.
+ */
+export const gridPPM = (w: number, h: number, top = 104, up = false) =>
+  Math.max(36, up ? Math.min(w / 4.0, (h - top) / 7.1) : Math.min((h - top) / 4.0, w / 7.1));
+
+/** where the wheel's roll call is: k = 0 for the team, 1.. for each driver; f = how far into that beat; face = what the dash shows */
+export function wheelStep(beat: number, drivers = 4) {
+  const b = Math.min(drivers + 0.999, Math.max(0, beat));
+  const k = Math.floor(b);
+  const f = b - k;
+  return { k, f, face: k === 0 ? -1 : f > 0.22 ? k - 1 : k - 2 };
+}
 
 // small maths shared by the scene and the sections
 export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);

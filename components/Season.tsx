@@ -3,7 +3,7 @@
 import { useRef, type CSSProperties } from "react";
 import { gsap, MOTION, useGSAP } from "@/lib/gsap";
 import { ABOUT, FIN_COUNT, ROUNDS } from "@/lib/data";
-import { stage } from "@/lib/stage";
+import { isStageOn, stage } from "@/lib/stage";
 import PhotoSlot from "./PhotoSlot";
 import s from "./Season.module.css";
 
@@ -56,7 +56,7 @@ export default function Season({ cover }: { cover: string | null }) {
           scrollTrigger: {
             trigger: root,
             start: "top top",
-            end: () => "+=" + Math.round(window.innerHeight * 1.7),
+            end: () => "+=" + (isStageOn() ? Math.round(window.innerHeight * 1.7) : 0), // no car to lap, no hold
             pin: true,
             scrub: 0.6,
             anticipatePin: 1,
