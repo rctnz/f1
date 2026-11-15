@@ -173,4 +173,14 @@ export const MODEL_CREDITS: ModelCredit[] = [
     licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
     note: 'ทีม A10 ดัดแปลง: ลบโลโก้ ใส่ลาย A10 และแยกชิ้นส่วน',
   },
+  {
+    what: 'พวงมาลัย',
+    title: 'McLaren Formula 1 Steering Wheel',
+    source: 'https://sketchfab.com/3d-models/mclaren-formula-1-steering-wheel-4dc0ce4effbe43d0a027aa072b437818',
+    author: 'dhimasdc9',
+    profile: 'https://sketchfab.com/dhimasdc9',
+    license: 'CC BY 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+    note: 'ทีม A10 ดัดแปลง: ลดจำนวนโพลิกอน เปลี่ยนสีบางชิ้น และใส่หน้าจอของทีม',
+  },
 ];

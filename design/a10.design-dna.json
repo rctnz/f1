@@ -97,7 +97,7 @@
     },
     "visual_language": "heavy italic type over real 3D: grained asphalt, red and white kerbs, a chequered start line, rubber laid at the start. Chrome stays flat and quiet so the car carries the colour.",
     "composition": "the headline lies over the car, which is as big as the screen (across a wide one, up an upright one), under a shade that ends where the words end; after that words left, machine right: side-on at speed, three-quarter on the stand",
-    "imagery": "one F1 car with every real brand mark removed and the team's A10 painted on; a steering wheel modelled in code for the driver roll call; the team's own photos per round",
+    "imagery": "one F1 car with every real brand mark removed and the team's A10 painted on; a steering wheel model (CC BY) for the driver roll call, with the page's own dash on its screen; the team's own photos per round",
     "interaction_feel": "scrubbing a film: every frame is a function of scroll, forwards and backwards",
     "brand_voice_in_ui": "Thai, plain, short; English only for round titles and race terms"
   },
@@ -115,8 +115,8 @@
       "renderer": "one fixed WebGLRenderer behind the page, alpha, DPR capped near four million pixels, drawn only when the scroll state changes",
       "lighting": "RoomEnvironment through PMREM, key and rim directional lights; for the steering wheel the room is turned, with a back kicker and one close lamp",
       "camera": "one perspective camera described as azimuth, elevation and metres across the screen; long lenses (18 to 26 degrees)",
-      "materials": "lacquered red paint with clearcoat, matt rubber, satin carbon; decals on a polygon offset; the wheel is lacquered twill carbon, sheened grips, flat-coloured caps",
-      "geometry": "car 183k triangles, meshopt-compressed GLB with WebP textures; the steering wheel is extruded and lathed in code, no file",
+      "materials": "lacquered red paint with clearcoat, matt rubber, satin carbon; decals on a polygon offset",
+      "geometry": "car 183k triangles, meshopt-compressed GLB with WebP textures; steering wheel 104k triangles, the same compression",
       "post_processing": "none",
       "interaction_model": "scroll only"
     },
@@ -135,7 +135,7 @@
     "cursor_effects": { "enabled": false },
     "image_effects": { "enabled": true, "notes": "cover photo reveals with a clip-path wipe; calendar photos zoom 3% on hover" },
     "glassmorphism_neumorphism": { "enabled": false },
-    "canvas_drawings": { "enabled": true, "notes": "the steering wheel's dash, carbon weave and printed markings are drawn on canvases from the site's own data (rounds done, drivers)" },
+    "canvas_drawings": { "enabled": true, "notes": "the steering wheel's dash is drawn on a canvas from the site's own data (rounds done, drivers)" },
     "svg_animations": { "enabled": true, "notes": "leader lines of the exploded view draw out from the part; the KMUTT track draws with DrawSVG" },
     "composite_notes": "3D sits behind the DOM at z-index 0. Sections are either solid (they wipe the car away) or clear (the car shows through). No glow, no purple, no blur."
   }

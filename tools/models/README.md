@@ -1,7 +1,7 @@
 # How the 3D assets were prepared
 
-`public/models/` holds three files. Only the car comes from a downloaded model; the steering wheel on the
-Driver Tags screen is not a file at all, it is built in code in `components/stage/wheel.ts`.
+`public/models/` holds four files. The car and the steering wheel come from downloaded models, both CC BY 4.0 and
+both credited in the site footer; the originals are not in the repo.
 
 ```bash
 # once, in an empty folder next to the original car model
@@ -21,8 +21,16 @@ The original is not in the repo. To rebuild after changing the model or the live
 
 The node names this script writes are the ones `components/stage/car.ts` looks for.
 
+**Steering wheel** (`wheel.glb`): "McLaren Formula 1 Steering Wheel" by dhimasdc9 on Sketchfab, CC BY 4.0.
+`node build-wheel.mjs <original.glb> ../../public/models/wheel.glb` recolours the purple parts and print (the site
+uses no purple), names the parts the page drives (SCREEN, LEDS_TOP, KNOB_MID, BUTTONS, GLASS), simplifies and
+compresses. 332k → 104k triangles, 10.9 MB → 1.0 MB. Add `--report` to list where the button caps sit.
+`components/stage/wheel.ts` lays the page's own dash over SCREEN and lights LEDS_TOP.
+
 **Asphalt** (`asphalt.webp`): `python asphalt.py ../../public/models/asphalt.webp` draws the tileable grain the track
 shader (`components/stage/ground.ts`) samples: three scales of noise and a scatter of pale stones. No source picture.
 
-**Shadow and still**: `car-shadow.png` is the car's footprint from above, blurred. `public/stills/car-apart.webp` is a
-frame of the exploded view (1440×900, the page hidden, cropped to the car), shown where the 3D stage is not running.
+**Shadow and stills**: `car-shadow.png` is the car's footprint from above, blurred. `public/stills/car-apart.webp` is a
+frame of the exploded view (the page hidden, cropped to the car), shown where the 3D stage is not running.
+`public/stills/grid.webp` is the hero's overhead shot at 1920×945 with the page hidden; `components/Hero.tsx` lays it
+where the live car will be until the stage is up, and holds the numbers that go with it (re-shoot both together).

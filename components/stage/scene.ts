@@ -239,13 +239,13 @@ export async function createScene(
    * the wheel leans into that side. x, y: the point looked at, in wheel units; zoom: how much closer than the team shot.
    */
   const FOCUS: [number, number, number][] = [
-    [0, 0, 1],
-    [-0.15, 0.085, 1.55],
-    [0.15, 0.085, 1.55],
-    [-0.15, 0.05, 1.55],
-    [0.15, 0.05, 1.55],
+    [0, 0.02, 1],
+    [0.14, 0.06, 1.38], // the red button, right of the dash
+    [-0.14, 0.11, 1.38], // the yellow one, left
+    [0.14, 0.11, 1.38], // the white one, right
+    [-0.15, 0.02, 1.38], // the green one, left
   ];
-  const STEER = [0, 0.16, -0.16, 0.12, -0.12];
+  const STEER = [0, -0.16, 0.16, -0.12, 0.12];
   function applyWheel(s: State) {
     if (!wheel) return;
     const mobile = w < 768;
@@ -340,7 +340,7 @@ export async function createScene(
     scene.environmentIntensity = isWheel ? 1.0 : 0.62;
     scene.environmentRotation.y = isWheel ? 4.8 : 0;
     kicker.intensity = isWheel ? 3.4 : 0;
-    lamp.intensity = isWheel ? 7 : 0;
+    lamp.intensity = isWheel ? 2 : 0;
     if (isWheel) applyWheel(stage);
     else applyCar(stage);
     // the paint on the ground is smeared by however far the ground moved since the last frame drawn, so kerbs and
@@ -398,12 +398,12 @@ export async function createScene(
     return null;
   }
 
-  // The steering wheel is built in code once the page's fonts are in (its dash is drawn with them); the car does not
-  // wait for it. Its shaders are compiled straight away, so the first time it comes on screen costs nothing.
+  // The steering wheel loads after the car, which does not wait for it, and is fitted once the page's fonts are in
+  // (its dash is drawn with them). Its shaders are compiled straight away, so its first appearance costs nothing.
   void (async () => {
-    await document.fonts?.ready;
+    const [file] = await Promise.all([loader.loadAsync(`${base}/models/wheel.glb`), document.fonts?.ready]);
     if (!alive || !car) return;
-    const rig = buildWheel(THREE, faces);
+    const rig = buildWheel(THREE, faces, file.scene);
     scene.add(rig.root);
     car.root.visible = false;
     const compiled = renderer.compileAsync(scene, camera); // gathers what is visible now, then waits
@@ -412,7 +412,7 @@ export async function createScene(
     await compiled.catch(() => undefined);
     wheel = rig;
     last = "";
-  })();
+  })().catch(() => undefined); // no wheel: the roll call still runs, with nothing on stage
 
   function cleanup() {
     alive = false;
