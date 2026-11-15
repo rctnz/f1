@@ -35,3 +35,9 @@ frame of the exploded view (the page hidden, cropped to the car), shown where th
 `public/stills/grid.webp` (the track) and `grid-car.webp` (the car and its shadow, clear background) are the hero's
 overhead shot at 1920×945 with the page hidden; `components/Hero.tsx` lays them where the live scene will be until the
 stage is up, keeps them where it cannot run, and holds the numbers that go with them (re-shoot all together).
+
+**Film** (`public/film/`): every 3D shot of the page rendered ahead of time, for browsers with no graphics card behind
+WebGL. With `npm run dev` running, `node ../film/capture.mjs http://localhost:3100/ ../../public/film` (needs
+puppeteer-core and sharp) photographs the live scene at 1920×945 and writes 142 WebP frames and `manifest.json`,
+about 3.3 MB. `components/stage/film.ts` plays them from the same numbers the live scene reads. Re-run it after any
+change to the models, the track, the camera moves or the steering wheel's dash.

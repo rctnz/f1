@@ -53,6 +53,8 @@ type Hooks = {
   invalidate: () => void;
   /** what the last frame cost: draw calls and triangles */
   info: () => { calls: number; triangles: number };
+  /** fade the track out or in (tools/film/capture.mjs photographs the car without it) */
+  groundOpacity: (v: number) => void;
 };
 export const hooks: Partial<Hooks> = {};
 

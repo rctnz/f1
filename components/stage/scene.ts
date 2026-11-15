@@ -330,6 +330,10 @@ export async function createScene(
     last = "";
   };
   hooks.info = () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles });
+  hooks.groundOpacity = (v: number) => {
+    ground.uniforms.uOpacity.value = v;
+    last = "";
+  };
 
   // ---- frame ---------------------------------------------------------------------------------------------------
   const sig = () => {
@@ -433,6 +437,7 @@ export async function createScene(
     delete hooks.layout;
     delete hooks.invalidate;
     delete hooks.info;
+    delete hooks.groundOpacity;
     scene.traverse((o) => {
       const m = o as T.Mesh;
       if (!m.isMesh) return;
