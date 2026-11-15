@@ -259,26 +259,27 @@ export function buildCar(THREE: Three, numberFont: string) {
     rod([-2.1, 0.26, sgn * 0.22], [-1.85, 0.3, sgn * 0.56]);
   }
 
-  // soft contact shadow under the car
-  {
-    const c = document.createElement("canvas");
-    c.width = c.height = 256;
-    const g = c.getContext("2d")!;
-    const grd = g.createRadialGradient(128, 128, 8, 128, 128, 128);
-    grd.addColorStop(0, "rgba(0,0,0,0.75)");
-    grd.addColorStop(0.6, "rgba(0,0,0,0.35)");
-    grd.addColorStop(1, "rgba(0,0,0,0)");
-    g.fillStyle = grd;
-    g.fillRect(0, 0, 256, 256);
-    const tex = new THREE.CanvasTexture(c);
-    const shadow = new THREE.Mesh(
-      new THREE.PlaneGeometry(6.6, 2.8),
-      new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }),
-    );
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = 0.004;
-    spinner.add(shadow);
-  }
+  spinner.add(contactShadow(THREE));
 
   return { root, spinner, wheels };
+}
+
+/** soft radial shadow on the ground under a car pointing along x */
+export function contactShadow(THREE: Three, w = 6.6, d = 2.8) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const g = c.getContext("2d")!;
+  const grd = g.createRadialGradient(128, 128, 8, 128, 128, 128);
+  grd.addColorStop(0, "rgba(0,0,0,0.75)");
+  grd.addColorStop(0.6, "rgba(0,0,0,0.35)");
+  grd.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 256, 256);
+  const shadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, d),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }),
+  );
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = 0.004;
+  return shadow;
 }

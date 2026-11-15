@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { carState } from "@/lib/carState";
+import { BASE } from "@/lib/data";
 import s from "./CarScene.module.css";
 
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2); // in-out
@@ -22,6 +23,7 @@ export default function CarScene() {
       const THREE = await import("three");
       const { RoomEnvironment } = await import("three/addons/environments/RoomEnvironment.js");
       const { buildCar } = await import("./carModel");
+      const { loadCar } = await import("./loadCar");
       await document.fonts?.ready;
       const el = wrap.current;
       if (!alive || !el) return;
@@ -50,14 +52,25 @@ export default function CarScene() {
       rim.position.set(-5, 3, -4);
       scene.add(key, rim);
 
-      const font = getComputedStyle(document.documentElement).getPropertyValue("--f-kanit") || "sans-serif";
-      const car = buildCar(THREE, font);
+      // the real model; the procedural one stands in if the file can't be loaded
+      let car: Awaited<ReturnType<typeof loadCar>>;
+      try {
+        car = await loadCar(THREE, `${BASE}/models/car.glb`);
+      } catch {
+        const font = getComputedStyle(document.documentElement).getPropertyValue("--f-kanit") || "sans-serif";
+        car = buildCar(THREE, font);
+      }
+      if (!alive) {
+        renderer.dispose();
+        renderer.domElement.remove();
+        return;
+      }
       scene.add(car.root);
 
       const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
       const target = new THREE.Vector3(0, 0.45, 0);
-      const FRONT = new THREE.Vector3(7.4, 2.6, 6.8); // front three-quarter, nose to the right
-      const SIDE = new THREE.Vector3(0.2, 0.9, 12.4); // straight side-on
+      const FRONT = new THREE.Vector3(8.0, 2.8, 7.4); // front three-quarter, nose to the right
+      const SIDE = new THREE.Vector3(0.2, 0.95, 13.4); // straight side-on
       const camPos = new THREE.Vector3();
 
       let w = 1, h = 1, mobile = false;
@@ -90,10 +103,12 @@ export default function CarScene() {
           // camera swings from the three-quarter view to side-on
           const k = ease(side);
           camPos.lerpVectors(FRONT, SIDE, k);
+          // phones: step back so the whole car fits the narrow screen
+          if (mobile) camPos.sub(target).multiplyScalar(1.5).add(target);
           camera.position.copy(camPos);
           camera.lookAt(target);
           // desktop: keep the car on the right of the headline; phones: low and centred
-          const offX = mobile ? 0 : -w * (0.16 - 0.01 * k);
+          const offX = mobile ? 0 : -w * (0.2 - 0.01 * k);
           const offY = mobile ? -h * (0.26 - 0.04 * k) : -h * (0.14 - 0.02 * k);
           camera.setViewOffset(w, h, offX, offY, w, h);
           camera.updateProjectionMatrix();
