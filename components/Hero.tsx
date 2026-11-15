@@ -2,10 +2,18 @@
 
 import { useRef, type ReactNode } from "react";
 import { gsap, MOTION, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { BASE } from "@/lib/data";
 import { gridIsUp, gridPPM, stage, whenStageReady } from "@/lib/stage";
 import s from "./Hero.module.css";
 
 const LINES = ["ENGINEERING", "EXPLORATION", "GRAND PRIX"];
+
+/**
+ * public/stills/grid.webp is the 3D grid shot rendered once (1920x945, the page hidden). It is laid exactly where
+ * the live car will be, so the first screen is whole while three.js and the model are still on their way.
+ * These are that render's own numbers: its size, where the car sat in it and its scale.
+ */
+const STILL = { w: 1920, h: 945, x: 865.84, y: 526.5, ppm: 209.25 };
 
 /**
  * First screen: the car from overhead, as big as the screen (across a wide one, up an upright one), with the
@@ -35,6 +43,7 @@ export default function Hero({ children }: { children: ReactNode }) {
         const hero = q("[data-hero]")[0] as HTMLElement;
         const inner = q("[data-inner]")[0] as HTMLElement;
         const title = q("h1")[0] as HTMLElement;
+        const still = q("[data-still]")[0] as HTMLElement;
         const range = document.createRange();
         const place = () => {
           const w = window.innerWidth;
@@ -50,6 +59,12 @@ export default function Hero({ children }: { children: ReactNode }) {
           // the shade follows the words: down to the foot of the headline when the car runs up the screen,
           // across to the end of its longest line when the car runs across (neither is moved by the float)
           root.dataset.grid = up ? "up" : "across";
+          // the still, scaled to this screen and laid car on car (it is only drawn for the car across the screen)
+          const k = ppm / STILL.ppm;
+          still.style.width = `${(STILL.w * k).toFixed(1)}px`;
+          still.style.left = `${(stage.gridX - STILL.x * k).toFixed(1)}px`;
+          still.style.top = `${(stage.gridY - top - STILL.y * k).toFixed(1)}px`;
+          still.dataset.still = up ? "off" : "on";
           let right = 0;
           words.forEach((el) => {
             range.selectNodeContents(el);
@@ -60,10 +75,12 @@ export default function Hero({ children }: { children: ReactNode }) {
         place();
         ScrollTrigger.addEventListener("refresh", place);
 
-        // once the car has loaded it rolls forward to the line, if the page is still at the top
-        if (window.scrollY < 40) stage.arrive = 0;
+        // Car across the screen: the still already shows it on its slot, and the live car simply takes its place.
+        // Car up the screen (no still): once loaded it rolls forward to the line, if the page is still at the top.
+        const rollIn = stage.gridUp > 0 && window.scrollY < 40;
+        if (rollIn) stage.arrive = 0;
         const cancelReady = whenStageReady(() => {
-          gsap.to(stage, { arrive: 1, duration: window.scrollY < 40 ? 1.1 : 0, ease: "expo.out", delay: 0.1 });
+          gsap.to(stage, { arrive: 1, duration: rollIn ? 1.1 : 0, ease: "expo.out", delay: rollIn ? 0.1 : 0 });
         });
 
         const lift = () => -window.innerHeight * 0.5;
@@ -76,7 +93,7 @@ export default function Hero({ children }: { children: ReactNode }) {
             start: "top top",
             end: () => "+=" + Math.round(window.innerHeight * 2.7),
             pin: true,
-            scrub: 0.5,
+            scrub: 0.25,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
@@ -102,6 +119,8 @@ export default function Hero({ children }: { children: ReactNode }) {
           stage.launch = 0;
           stage.gridX = stage.gridY = stage.gridPpm = stage.gridUp = 0;
           delete root.dataset.grid;
+          still.removeAttribute("style");
+          still.dataset.still = "";
           hero.style.removeProperty("--text-end");
         };
       });
@@ -113,6 +132,8 @@ export default function Hero({ children }: { children: ReactNode }) {
     <div className={s.start} id="top" ref={ref}>
       <div className={s.bar}>{children}</div>
       <section className={s.hero} aria-labelledby="hero-title" data-hero>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className={s.still} data-still="" src={`${BASE}/stills/grid.webp`} width={STILL.w} height={STILL.h} alt="" decoding="async" />
         <div className={s.scrim} data-scrim aria-hidden="true" />
 
         {/* start gantry: a beam across the track with five lights hanging from it */}

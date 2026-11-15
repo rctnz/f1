@@ -95,7 +95,9 @@ function finish(THREE: Three, m: T.MeshPhysicalMaterial, aniso: number) {
   m.needsUpdate = true;
 }
 
-export function buildCar(THREE: Three, model: T.Object3D, shadowMap: T.Texture, aniso: number): CarRig {
+type Merge = (geometries: T.BufferGeometry[], useGroups?: boolean) => T.BufferGeometry | null;
+
+export function buildCar(THREE: Three, model: T.Object3D, shadowMap: T.Texture, aniso: number, merge: Merge): CarRig {
   const root = new THREE.Group();
   const turn = new THREE.Group(); // the file's nose points along +z; the track runs along +x
   turn.rotation.y = Math.PI / 2;
@@ -155,6 +157,65 @@ export function buildCar(THREE: Three, model: T.Object3D, shadowMap: T.Texture, 
     pivot.attach(wheel);
     pivots.push(pivot);
     if (name === "WHEEL_RF_19") wheelRadius = (wb.max.y - wb.min.y) / 2;
+  }
+
+  // The file is about 145 small meshes, and it is the number of separate draws, not their size, that a frame costs.
+  // So inside each part that moves as one (a group, or a wheel on its pivot) everything sharing a material becomes
+  // one mesh, with every node's own placement baked into the vertices.
+  const boxes: T.Object3D[] = [...Object.values(groups), ...pivots];
+  const isBox = new Set(boxes);
+  const flat = (mesh: T.Mesh, inv: T.Matrix4) => {
+    const src = mesh.geometry;
+    const pos = src.getAttribute("position");
+    const out = new THREE.BufferGeometry();
+    for (const name of ["position", "normal", "uv"]) {
+      const a = src.getAttribute(name);
+      const n = name === "uv" ? 2 : 3;
+      const data = new Float32Array(pos.count * n);
+      if (a) {
+        for (let i = 0; i < pos.count; i++) {
+          data[i * n] = a.getX(i);
+          data[i * n + 1] = a.getY(i);
+          if (n === 3) data[i * n + 2] = a.getZ(i);
+        }
+      }
+      out.setAttribute(name, new THREE.BufferAttribute(data, n));
+    }
+    const idx = src.getIndex();
+    const index: number[] = idx ? Array.from(idx.array as ArrayLike<number>) : Array.from({ length: pos.count }, (_, i) => i);
+    const m = new THREE.Matrix4().multiplyMatrices(inv, mesh.matrixWorld);
+    if (m.determinant() < 0) for (let i = 0; i + 2 < index.length; i += 3) [index[i], index[i + 1]] = [index[i + 1], index[i]]; // a mirrored part keeps facing out
+    out.setIndex(index);
+    out.applyMatrix4(m);
+    if (!src.getAttribute("normal")) out.computeVertexNormals();
+    return out;
+  };
+  root.updateMatrixWorld(true);
+  for (const box of boxes) {
+    const inv = new THREE.Matrix4().copy(box.matrixWorld).invert();
+    const byMaterial = new Map<T.Material, T.Mesh[]>();
+    const walk = (o: T.Object3D) => {
+      for (const child of o.children) {
+        if (isBox.has(child)) continue; // a wheel on its pivot is gathered on its own
+        const mesh = child as T.Mesh;
+        const mat = mesh.material as T.MeshStandardMaterial;
+        if (mesh.isMesh && !Array.isArray(mat) && !mat.vertexColors && !(mat.aoMap && mat.aoMap.channel > 0)) byMaterial.set(mat, [...(byMaterial.get(mat) ?? []), mesh]);
+        walk(child);
+      }
+    };
+    walk(box);
+    for (const [mat, meshes] of byMaterial) {
+      if (meshes.length < 2) continue;
+      const one = merge(meshes.map((mesh) => flat(mesh, inv)), false);
+      if (!one) continue;
+      const mesh = new THREE.Mesh(one, mat);
+      mesh.frustumCulled = false;
+      box.add(mesh);
+      for (const old of meshes) {
+        old.removeFromParent();
+        old.geometry.dispose();
+      }
+    }
   }
 
   // the car's own footprint, blurred: reads as weight on the ground from above and from the side

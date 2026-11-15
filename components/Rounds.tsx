@@ -64,7 +64,7 @@ export default function Rounds({ photos }: { photos: Record<string, string | nul
             .from(one("[data-title]"), { yPercent: 105, duration: 0.6 }, 0.15)
             .from(one("[data-strip]"), { clipPath: "inset(0% 100% 0% 0%)", duration: 0.45 }, 0.35);
           // scrubbed depth: the big number and the photo move at their own speeds
-          const scrub = { trigger: art, start: "top bottom", end: "bottom top", scrub: 0.6 };
+          const scrub = { trigger: art, start: "top bottom", end: "bottom top", scrub: 0.25 };
           gsap.fromTo(one("[data-num]"), { yPercent: 12 }, { yPercent: -12, ease: "none", scrollTrigger: scrub });
           gsap.fromTo(one("[data-media]"), { yPercent: -8, scale: 1.16 }, { yPercent: 8, scale: 1.16, ease: "none", scrollTrigger: { ...scrub } });
         });
@@ -77,7 +77,7 @@ export default function Rounds({ photos }: { photos: Record<string, string | nul
         const car = q("[data-car]")[0];
         const rnd = q("[data-rail-rnd]")[0];
         const code = q("[data-rail-code]")[0];
-        const scrub = { trigger: list, start: "top 60%", end: "bottom bottom", scrub: 0.6 };
+        const scrub = { trigger: list, start: "top 60%", end: "bottom bottom", scrub: 0.25 };
         // the server shows the finished season (16/16); with the line drawn by scroll, start the readout at round 01
         rnd.textContent = ROUNDS[0].nn;
         code.textContent = ROUNDS[0].code;

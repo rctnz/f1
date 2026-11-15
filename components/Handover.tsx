@@ -17,7 +17,7 @@ export default function Handover({ from, to, clear }: { from: Theme; to: Theme; 
         gsap.fromTo(
           ref.current!.querySelector("[data-strip]"),
           { xPercent: 0 },
-          { xPercent: -12, ease: "none", scrollTrigger: { trigger: ref.current, start: "top bottom", end: "bottom top", scrub: 0.6 } },
+          { xPercent: -12, ease: "none", scrollTrigger: { trigger: ref.current, start: "top bottom", end: "bottom top", scrub: 0.25 } },
         );
       });
     },

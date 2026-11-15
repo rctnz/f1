@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState, type DragEvent, type ReactNode } from "react";
-import { deletePhoto, getPhoto, setPhoto, shrink } from "@/lib/photoStore";
+import { deletePhoto, getPhoto, PHOTO_EVENT, setPhoto, shrink } from "@/lib/photoStore";
 import s from "./PhotoSlot.module.css";
 
 type Props = {
@@ -32,11 +32,15 @@ export default function PhotoSlot({ id, src, label, alt, shape, eager, className
   useEffect(() => {
     if (src) return;
     let alive = true;
-    getPhoto(id).then((b) => {
-      if (alive && b) show(b);
-    });
+    const load = () =>
+      getPhoto(id).then((b) => {
+        if (alive) show(b ?? null);
+      });
+    load();
+    window.addEventListener(PHOTO_EVENT, load); // the same picture can have a second slot elsewhere on the page
     return () => {
       alive = false;
+      window.removeEventListener(PHOTO_EVENT, load);
       if (urlRef.current) URL.revokeObjectURL(urlRef.current);
       urlRef.current = null;
     };

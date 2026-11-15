@@ -229,7 +229,7 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
 
         const vh = () => window.innerHeight;
         // approach: while the section rises into place the camera comes round to the car
-        gsap.fromTo(stage, { pit: 0 }, { pit: 1, ease: "none", scrollTrigger: { trigger: root, start: "top bottom", end: "top top", scrub: 0.5 } });
+        gsap.fromTo(stage, { pit: 0 }, { pit: 1, ease: "none", scrollTrigger: { trigger: root, start: "top bottom", end: "top top", scrub: 0.25 } });
         // on screen: from the first sliver of the section until the pin has let go and it has scrolled away
         ScrollTrigger.create({
           trigger: root,
@@ -250,7 +250,7 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
             start: "top top",
             end: () => "+=" + (isStageOn() ? Math.round(vh() * 2.6) : 0), // nothing comes apart without the stage, so no hold
             pin: true,
-            scrub: 0.6,
+            scrub: 0.25,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },

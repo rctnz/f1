@@ -73,7 +73,7 @@ export default function DriverTags({ photos }: { photos: Record<string, string |
             start: "top top",
             end: () => "+=" + (isStageOn() ? Math.round(vh() * 2.6) : 0), // no wheel, no hold
             pin: true,
-            scrub: 0.6,
+            scrub: 0.25,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
@@ -123,8 +123,8 @@ export default function DriverTags({ photos }: { photos: Record<string, string |
             <p>นักขับทีม A10 ทั้ง 4 คน เบอร์รถคือเลขสองตัวท้ายของรหัสนักศึกษา</p>
           </header>
         </div>
-        {/* the roll call beside the 3D wheel: decorative, the tags below carry the same names for everyone */}
-        <div className={`wrap ${s.roll}`} aria-hidden="true" data-roll>
+        {/* the roll call beside the 3D wheel: one driver at a time, with the same portrait slot as their tag below */}
+        <div className={`wrap ${s.roll}`} data-roll>
           <div className={s.who} data-who>
             <p className={s.no}>A10</p>
             <p className={s.name}>นักขับ 4 คน</p>
@@ -132,6 +132,14 @@ export default function DriverTags({ photos }: { photos: Record<string, string |
           </div>
           {DRIVERS.map((d) => (
             <div key={d.id} className={s.who} data-who style={{ "--c": d.color } as CSSProperties}>
+              <PhotoSlot
+                className={s.face}
+                id={`driver-${d.no}`}
+                src={photos[`driver-${d.no}`] ?? null}
+                label={`DRIVER ${d.no}`}
+                alt={`รูปของ ${d.first} ${d.last}`}
+                shape="portrait"
+              />
               <p className={s.no}>{d.no}</p>
               <p className={s.name}>
                 {d.first} {d.last}

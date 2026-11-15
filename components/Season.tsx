@@ -49,7 +49,7 @@ export default function Season({ cover }: { cover: string | null }) {
         if (!root) return;
         const q = gsap.utils.selector(root);
 
-        gsap.fromTo(stage, { chase: 0 }, { chase: 1, ease: "none", scrollTrigger: { trigger: root, start: "top bottom", end: "top top", scrub: 0.5 } });
+        gsap.fromTo(stage, { chase: 0 }, { chase: 1, ease: "none", scrollTrigger: { trigger: root, start: "top bottom", end: "top top", scrub: 0.25 } });
 
         const lap = gsap.timeline({
           defaults: { ease: "none" },
@@ -58,7 +58,7 @@ export default function Season({ cover }: { cover: string | null }) {
             start: "top top",
             end: () => "+=" + (isStageOn() ? Math.round(window.innerHeight * 1.7) : 0), // no car to lap, no hold
             pin: true,
-            scrub: 0.6,
+            scrub: 0.25,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },

@@ -11,7 +11,7 @@ export default function SmoothScroll() {
     let tick: ((t: number) => void) | null = null;
 
     if (matchMedia(MOTION).matches) {
-      lenis = new Lenis({ autoRaf: false, anchors: true, lerp: 0.1 });
+      lenis = new Lenis({ autoRaf: false, anchors: true, lerp: 0.13 });
       lenis.on("scroll", ScrollTrigger.update);
       tick = (t: number) => lenis?.raf(t * 1000);
       gsap.ticker.add(tick);

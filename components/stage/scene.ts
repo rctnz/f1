@@ -110,6 +110,7 @@ export async function createScene(
   let w = 1;
   let h = 1;
   let last = "";
+  let lastTravel = 0;
   let alive = true;
 
   // ---- camera ------------------------------------------------------------------------------------------------
@@ -232,27 +233,58 @@ export async function createScene(
   }
 
   // ---- the steering wheel's shots ------------------------------------------------------------------------------
-  /** how far the wheel is turned on each beat of the roll call: straight for the team, then a corner for each driver */
-  const STEER = [0, 0.5, -0.5, 0.36, -0.36];
+  /**
+   * One beat for the team, then one for each driver. On a driver's beat the camera pushes in on their side of the
+   * wheel (their button and the dash beside it), from the left for one driver and from the right for the next, and
+   * the wheel leans into that side. x, y: the point looked at, in wheel units; zoom: how much closer than the team shot.
+   */
+  const FOCUS: [number, number, number][] = [
+    [0, 0, 1],
+    [-0.15, 0.085, 1.55],
+    [0.15, 0.085, 1.55],
+    [-0.15, 0.05, 1.55],
+    [0.15, 0.05, 1.55],
+  ];
+  const STEER = [0, 0.16, -0.16, 0.12, -0.12];
   function applyWheel(s: State) {
     if (!wheel) return;
     const mobile = w < 768;
-    // as wide as the column beside the roll call allows, and no taller, turned into a corner, than two thirds of the screen
+    // as wide as the column beside the roll call allows, and no taller than two thirds of the screen
     const frameW = mobile ? 1.45 : Math.max(clamp(w / 620, 2.1, 2.9), 1.45 * (w / h));
     const kin = out3(clamp01(s.wheelIn));
     const { k, f, face } = wheelStep(s.wheelBeat, STEER.length - 1);
-    // it turns into each corner over the first half of the beat, and holds the lock for the rest
-    const steer = lerp(STEER[Math.max(0, k - 1)], STEER[k], inOut3(clamp01(f / 0.5)));
+    // the move to each close-up takes the first half of the beat, and the shot holds for the rest; between two
+    // close-ups the camera eases back on the way across, so the swing from one side to the other reads
+    const t = inOut3(clamp01(f / 0.5));
+    const a = FOCUS[Math.max(0, k - 1)];
+    const b = FOCUS[k];
+    const fx = lerp(a[0], b[0], t);
+    const fy = lerp(a[1], b[1], t);
+    const zoom = lerp(a[2], b[2], t) * (1 - (k > 1 ? 0.24 * Math.sin(Math.PI * t) : 0));
+    const steer = lerp(STEER[Math.max(0, k - 1)], STEER[k], t);
+    const side = fx / 0.15; // -1 the wheel's left, +1 its right
     // each driver is called like a gear change: their button goes in, the mode dial clicks on, the wheel kicks back
     const called = k > 0;
     const kick = called ? Math.sin(Math.PI * clamp01((f - 0.12) / 0.2)) : 0;
-    setCamera({ az: rad(-10) - steer * 0.22, el: rad(7), frameW, fov: 24, tx: 0, ty: 0, tz: 0, sx: mobile ? 0.5 : 0.67, sy: mobile ? 0.46 : 0.55 });
+    setCamera({
+      az: rad(-8) * (1 - Math.abs(side)) + side * rad(15),
+      el: rad(7),
+      frameW: frameW / (mobile ? 1 + (zoom - 1) * 0.5 : zoom),
+      fov: 24,
+      // the point looked at, where it is once the wheel has turned
+      tx: fx * Math.cos(steer) - fy * Math.sin(steer),
+      ty: fx * Math.sin(steer) + fy * Math.cos(steer),
+      tz: 0,
+      // it sits right of the roll call's column, further right when it is on the wheel's right, so the wheel never covers the names
+      sx: mobile ? 0.5 : 0.67 + side * (side > 0 ? 0.15 : 0.05),
+      sy: mobile ? 0.46 : 0.55,
+    });
     // it comes and goes with the page: one screen under its place while the section arrives, one screen over it as
     // the section leaves, at the page's own speed, so it never crosses the heading. It turns to face us on the way in.
     const ride = (clamp01(s.wheelOut) - (1 - clamp01(s.wheelIn))) * h * (frameW / w);
     wheel.root.position.set(0, ride, -0.06 * kick);
     wheel.root.scale.setScalar(lerp(0.86, 1, kin) * (1 - 0.02 * kick));
-    wheel.pose(steer, lerp(rad(-120), 0, kin) - steer * 0.3, rad(-11));
+    wheel.pose(steer, lerp(rad(-120), 0, kin) - side * rad(9), rad(-11));
     wheel.show(face);
     wheel.press(k - 1, called ? smooth(0.1, 0.2, f) * (1 - smooth(0.34, 0.5, f)) : 0);
     wheel.click(called ? k - 1 + smooth(0.12, 0.3, f) : 0);
@@ -311,6 +343,12 @@ export async function createScene(
     lamp.intensity = isWheel ? 7 : 0;
     if (isWheel) applyWheel(stage);
     else applyCar(stage);
+    // the paint on the ground is smeared by however far the ground moved since the last frame drawn, so kerbs and
+    // chequers blur at speed instead of strobing; once it stops one more frame follows, to draw it sharp again
+    const travelled = Math.abs(ground.uniforms.uTravel.value - lastTravel);
+    lastTravel = ground.uniforms.uTravel.value;
+    ground.uniforms.uBlur.value = isWheel ? 0 : Math.min(3, travelled * 0.8);
+    if (travelled > 0.005) last = "";
     scene.updateMatrixWorld(true);
     renderer.render(scene, camera);
     if (car && !isWheel) project(car.anchors, anchors.car);
@@ -343,13 +381,14 @@ export async function createScene(
   // models: the car first (the hero needs it), the wheel once the car is in
   const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
   const { MeshoptDecoder } = await import("three/addons/libs/meshopt_decoder.module.js");
+  const { mergeGeometries } = await import("three/addons/utils/BufferGeometryUtils.js");
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
 
   try {
     const [gltf, shadow] = await Promise.all([loader.loadAsync(`${base}/models/car.glb`), new THREE.TextureLoader().loadAsync(`${base}/models/car-shadow.png`)]);
     if (!alive) return null;
-    car = buildCar(THREE, gltf.scene, shadow, renderer.capabilities.getMaxAnisotropy());
+    car = buildCar(THREE, gltf.scene, shadow, renderer.capabilities.getMaxAnisotropy(), mergeGeometries);
     scene.add(car.root);
     applyCar(stage);
     await renderer.compileAsync(scene, camera); // shaders ready before the first frame, so nothing hitches on scroll
@@ -359,11 +398,21 @@ export async function createScene(
     return null;
   }
 
-  // the steering wheel is built here in code, so it is ready as soon as the car is
-  wheel = buildWheel(THREE, faces);
-  wheel.root.visible = false;
-  scene.add(wheel.root);
-  last = "";
+  // The steering wheel is built in code once the page's fonts are in (its dash is drawn with them); the car does not
+  // wait for it. Its shaders are compiled straight away, so the first time it comes on screen costs nothing.
+  void (async () => {
+    await document.fonts?.ready;
+    if (!alive || !car) return;
+    const rig = buildWheel(THREE, faces);
+    scene.add(rig.root);
+    car.root.visible = false;
+    const compiled = renderer.compileAsync(scene, camera); // gathers what is visible now, then waits
+    car.root.visible = true;
+    rig.root.visible = false;
+    await compiled.catch(() => undefined);
+    wheel = rig;
+    last = "";
+  })();
 
   function cleanup() {
     alive = false;

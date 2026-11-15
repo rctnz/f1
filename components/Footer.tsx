@@ -20,7 +20,7 @@ export default function Footer() {
           ease: "power4.out",
           scrollTrigger: { trigger: q("[data-big]")[0], start: "top 90%", end: "bottom 10%", toggleActions: "play reverse play reverse" },
         });
-        const scrub = { trigger: ref.current, start: "top bottom", end: "bottom bottom", scrub: 0.6 };
+        const scrub = { trigger: ref.current, start: "top bottom", end: "bottom bottom", scrub: 0.25 };
         gsap.fromTo(q("[data-row='a']"), { xPercent: 0 }, { xPercent: -8, ease: "none", scrollTrigger: scrub });
         gsap.fromTo(q("[data-row='b']"), { xPercent: -8 }, { xPercent: 0, ease: "none", scrollTrigger: { ...scrub } });
       });

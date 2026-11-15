@@ -20,6 +20,7 @@ export function makeGround(THREE: Three, asphalt: T.Texture) {
     uTravel: { value: 0 }, // metres of track that have gone by under the camera
     uSpeed: { value: 0 }, // 0..1 streaks
     uMark: { value: 0 }, // metres of rubber laid from the grid
+    uBlur: { value: 0 }, // metres the ground moved during this frame: paint is averaged over that length
     uCentre: { value: new THREE.Vector2() }, // world xz the far fade is centred on
     uNear: { value: 14 },
     uFar: { value: 34 },
@@ -47,7 +48,7 @@ export function makeGround(THREE: Three, asphalt: T.Texture) {
     fragmentShader: /* glsl */ `
       precision highp float;
       uniform sampler2D uAsphalt;
-      uniform float uTravel, uSpeed, uMark, uNear, uFar, uOpacity;
+      uniform float uTravel, uSpeed, uMark, uBlur, uNear, uFar, uOpacity;
       uniform vec2 uCentre, uRes;
       uniform vec4 uMaskX, uMaskY, uBandY, uBox;
       varying vec3 vW;
@@ -63,6 +64,16 @@ export function makeGround(THREE: Three, asphalt: T.Texture) {
         float aa = fwidth(sd) * 0.75 + 1e-4;
         return 1.0 - smoothstep(-aa, aa, sd);
       }
+      // the mean, over a window w wide centred on x, of a square wave that is 1 on the second half of each period p.
+      // With w = one pixel's footprint plus the frame's motion, blocks soften with distance and speed and never strobe.
+      float wave(float x, float p, float w) {
+        float a = (x - 0.5 * w) / p, b = (x + 0.5 * w) / p;
+        float ia = floor(a) * 0.5 + max(fract(a) - 0.5, 0.0);
+        float ib = floor(b) * 0.5 + max(fract(b) - 0.5, 0.0);
+        return (ib - ia) * p / w;
+      }
+      // the share of that window that lies between a and b
+      float span(float v, float a, float b, float w) { return clamp((min(b, v + 0.5 * w) - max(a, v - 0.5 * w)) / w, 0.0, 1.0); }
       void over(inout vec4 dst, vec3 c, float k) { dst.rgb = mix(dst.rgb, c, k); dst.a = dst.a + k * (1.0 - dst.a); }
 
       void main() {
@@ -92,14 +103,16 @@ export function makeGround(THREE: Three, asphalt: T.Texture) {
         float across = strip(side, -1.0, ROAD);
         float sq = ROAD / 6.0;
         float x0 = 3.02, x1 = x0 + 2.0 * sq;
-        float chequer = mod(floor((g.x - x0) / sq) + floor((g.y + ROAD) / sq), 2.0);
-        float band = strip(g.x, x0, x1) * across;
+        float wx = fwidth(g.x) + uBlur + 1e-4, wy = fwidth(g.y) + 1e-4;
+        float cx = wave(g.x - x0, 2.0 * sq, wx), cy = wave(g.y + ROAD, 2.0 * sq, wy);
+        float chequer = cx + cy - 2.0 * cx * cy;
+        float band = span(g.x, x0, x1, wx) * across;
         over(o, tarmac * 0.66, band * (1.0 - chequer) * 0.7); // the squares left bare read a shade darker
         over(o, WHITE, band * chequer * wear);
-        over(o, WHITE, max(strip(g.x, x0 - 0.14, x0 - 0.08), strip(g.x, x1 + 0.08, x1 + 0.14)) * across * wear);
+        over(o, WHITE, max(span(g.x, x0 - 0.14, x0 - 0.08, wx), span(g.x, x1 + 0.08, x1 + 0.14, wx)) * across * wear);
 
         // each edge: the kerb, red and white blocks from the asphalt out
-        float block = step(0.5, fract(g.x / 2.4));
+        float block = wave(g.x, 2.4, wx);
         over(o, mix(RED, WHITE, block) * (0.84 + 0.16 * fine), strip(side, ROAD, ROAD + KERB));
 
         float d = distance(vW.xz, uCentre);

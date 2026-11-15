@@ -87,7 +87,7 @@ export default function Calendar({ photos }: { photos: Record<string, string | n
           stage.calRun = dist() * p;
         };
         // while the section rises into place the camera settles low and the car drives in under round 1
-        gsap.fromTo(stage, { toCal: 0 }, { toCal: 1, ease: "none", scrollTrigger: { trigger: root, start: "top bottom", end: "top top", scrub: 0.5 } });
+        gsap.fromTo(stage, { toCal: 0 }, { toCal: 1, ease: "none", scrollTrigger: { trigger: root, start: "top bottom", end: "top top", scrub: 0.25 } });
         const tween = gsap.to(row, {
           x: () => -dist(),
           ease: "none",
@@ -102,7 +102,7 @@ export default function Calendar({ photos }: { photos: Record<string, string | n
             start: "top top",
             end: () => "+=" + Math.round(dist() * 1.15),
             pin: true,
-            scrub: 0.6,
+            scrub: 0.25,
             invalidateOnRefresh: true,
             onRefresh: (self) => {
               // the car's body sits midway between the bottom of the cards and the bottom of the screen

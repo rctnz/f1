@@ -23,7 +23,6 @@ export default function Stage() {
 
     (async () => {
       const [THREE, { createScene }] = await Promise.all([import("three"), import("./scene")]);
-      await document.fonts?.ready;
       if (!alive) return;
       const css = getComputedStyle(document.documentElement);
       const scene = await createScene(THREE, el, BASE, gsap.ticker, {

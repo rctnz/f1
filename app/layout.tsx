@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Anuphan, Chakra_Petch, JetBrains_Mono, Kanit } from "next/font/google";
+import { BASE } from "@/lib/data";
 import "./globals.css";
 
 const kanit = Kanit({ weight: ["800", "900"], style: "italic", subsets: ["thai", "latin"], variable: "--f-kanit", display: "swap" });
@@ -26,6 +27,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: motionScript }} />
+        {/* the hero's still and the 3D files start downloading with the page, not when the script that needs them runs */}
+        <link rel="preload" as="image" href={`${BASE}/stills/grid.webp`} media="(min-width: 1024px) and (min-aspect-ratio: 1/1)" fetchPriority="high" />
+        <link rel="preload" as="fetch" href={`${BASE}/models/car.glb`} crossOrigin="anonymous" />
+        <link rel="preload" as="image" href={`${BASE}/models/asphalt.webp`} crossOrigin="anonymous" />
+        <link rel="preload" as="image" href={`${BASE}/models/car-shadow.png`} crossOrigin="anonymous" />
       </head>
       <body>{children}</body>
     </html>

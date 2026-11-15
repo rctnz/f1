@@ -333,9 +333,10 @@ export function buildWheel(THREE: Three, faces: WheelFaces): WheelRig {
 
   // ---- what is printed on the plate -----------------------------------------------------------------------------
   const [d0, d1, d2, d3] = faces.drivers;
+  // the drivers' buttons alternate sides in the order they are called: left, right, left, right
   const print = markings(THREE, faces, [
-    [d0?.no ?? "", d1?.no ?? "", "N"],
-    [d2?.no ?? "", d3?.no ?? "", "PIT"],
+    [d0?.no ?? "", d2?.no ?? "", "N"],
+    [d1?.no ?? "", d3?.no ?? "", "PIT"],
   ]);
   add(new THREE.Mesh(new THREE.PlaneGeometry(print.w, print.h), new THREE.MeshBasicMaterial({ map: print.tex, transparent: true, depthWrite: false, toneMapped: false })), print.cx, print.cy, FACE + 0.0012);
 
@@ -350,8 +351,8 @@ export function buildWheel(THREE: Three, faces: WheelFaces): WheelRig {
   };
   const calls: Button[] = [
     button(-BUTTON_X, BUTTON_Y[0], d0?.color ?? 0xff3b30),
-    button(-BUTTON_X, BUTTON_Y[1], d1?.color ?? 0xffd60a),
-    button(BUTTON_X, BUTTON_Y[0], d2?.color ?? 0xa3aab3),
+    button(BUTTON_X, BUTTON_Y[0], d1?.color ?? 0xffd60a),
+    button(-BUTTON_X, BUTTON_Y[1], d2?.color ?? 0xa3aab3),
     button(BUTTON_X, BUTTON_Y[1], d3?.color ?? 0x34d399),
   ];
   button(-BUTTON_X, BUTTON_Y[2], 0xeef1f4);

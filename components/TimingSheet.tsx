@@ -76,8 +76,8 @@ export default function TimingSheet() {
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: pin
-            ? { trigger: root, start: "top top", end: "+=160%", pin: true, scrub: 0.6, invalidateOnRefresh: true }
-            : { trigger: q("[data-sheet]")[0], start: "top 70%", end: "bottom 60%", scrub: 0.6, invalidateOnRefresh: true },
+            ? { trigger: root, start: "top top", end: "+=160%", pin: true, scrub: 0.25, invalidateOnRefresh: true }
+            : { trigger: q("[data-sheet]")[0], start: "top 70%", end: "bottom 60%", scrub: 0.25, invalidateOnRefresh: true },
           onUpdate() {
             const n = String(Math.min(FIN_COUNT, Math.max(1, Math.ceil(tl.progress() * 16)))).padStart(2, "0");
             if (lap.textContent !== n) lap.textContent = n;
