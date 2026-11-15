@@ -220,8 +220,9 @@ export async function createScene(
     const headFoot = 250 / h;
     // either way the clear patch rides up with the section: its top edge is a screen down when the chase starts
     const top = 1 - clamp01(s.chase);
-    const k = s.chase > 0 ? words : 0;
+    let k = s.chase > 0 ? words : 0;
     if (!stacked) {
+      k *= smooth(0.55, 0.97, s.chase); // beside the words the track stays whole until they are nearly in place
       box.set(lerp(-1, 0.33, k), lerp(-0.5, 0.5, k), top - 0.06, top);
       mx.set(-1, -0.5, lerp(2, 0.56, kPit), lerp(3, 0.7, kPit));
       my.set(lerp(-1, headFoot, kPit), lerp(-0.5, headFoot + 90 / h, kPit), 2, 3);
@@ -251,11 +252,13 @@ export async function createScene(
    */
   const FOCUS: [number, number, number][] = [
     [0, 0.02, 1],
-    [0.14, 0.06, 1.38], // the red button, right of the dash
-    [-0.14, 0.11, 1.38], // the yellow one, left
-    [0.14, 0.11, 1.38], // the white one, right
-    [-0.15, 0.02, 1.38], // the green one, left
+    [0.14, 0.06, 1.25], // the red button, right of the dash
+    [-0.14, 0.11, 1.25], // the yellow one, left
+    [0.14, 0.11, 1.25], // the white one, right
+    [-0.15, 0.02, 1.25], // the green one, left
   ];
+  /** where on the screen that point sits: the wheel takes the left for one driver and the right for the next, and their name takes the other side */
+  const SX = [0.67, 0.3, 0.7, 0.3, 0.7];
   const STEER = [0, -0.16, 0.16, -0.12, 0.12];
   function applyWheel(s: State) {
     if (!wheel) return;
@@ -286,8 +289,7 @@ export async function createScene(
       tx: fx * Math.cos(steer) - fy * Math.sin(steer),
       ty: fx * Math.sin(steer) + fy * Math.cos(steer),
       tz: 0,
-      // it sits right of the roll call's column, further right when it is on the wheel's right, so the wheel never covers the names
-      sx: mobile ? 0.5 : 0.67 + side * (side > 0 ? 0.15 : 0.05),
+      sx: mobile ? 0.5 : lerp(SX[Math.max(0, k - 1)], SX[k], t),
       sy: mobile ? 0.46 : 0.55,
     });
     // it comes and goes with the page: one screen under its place while the section arrives, one screen over it as

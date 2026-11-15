@@ -130,8 +130,8 @@ export default function DriverTags({ photos }: { photos: Record<string, string |
             <p className={s.name}>นักขับ 4 คน</p>
             <p className={s.en}>CPE102 / KMUTT</p>
           </div>
-          {DRIVERS.map((d) => (
-            <div key={d.id} className={s.who} data-who style={{ "--c": d.color } as CSSProperties}>
+          {DRIVERS.map((d, i) => (
+            <div key={d.id} className={`${s.who} ${i % 2 === 0 ? s.right : ""}`} data-who style={{ "--c": d.color } as CSSProperties}>
               <PhotoSlot
                 className={s.face}
                 id={`driver-${d.no}`}

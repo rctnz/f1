@@ -24,4 +24,30 @@ export function scrollToY(y: number) {
   else window.scrollTo(0, y);
 }
 
+/**
+ * Makes a pinned section hold on: when scrolling stops part-way through it, the page glides on to the nearest of
+ * `points` (fractions of the pin, e.g. 0 = just pinned, 1 = let go). Returns a cleanup.
+ */
+export function stick(st: ScrollTrigger, points: number[]) {
+  let gliding = false;
+  const onEnd = () => {
+    if (gliding) {
+      gliding = false;
+      return;
+    }
+    const len = st.end - st.start;
+    const y = window.scrollY;
+    if (len < 80 || y <= st.start + 2 || y >= st.end - 2) return;
+    const p = (y - st.start) / len;
+    const to = points.reduce((best, v) => (Math.abs(v - p) < Math.abs(best - p) ? v : best), points[0]);
+    if (Math.abs(to - p) * len < 6) return;
+    const lenis = (window as unknown as { __lenis?: LenisLike }).__lenis;
+    if (!lenis) return;
+    gliding = true;
+    lenis.scrollTo(st.start + len * to, { duration: 0.7, easing: (t: number) => 1 - Math.pow(1 - t, 3) });
+  };
+  ScrollTrigger.addEventListener("scrollEnd", onEnd);
+  return () => ScrollTrigger.removeEventListener("scrollEnd", onEnd);
+}
+
 export { gsap, ScrollTrigger, useGSAP };

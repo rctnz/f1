@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, MOTION, PIN_OK, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION, PIN_OK, useGSAP, stick } from "@/lib/gsap";
 import { FIN_COUNT, ROUNDS, titleOf, type Round } from "@/lib/data";
 import s from "./TimingSheet.module.css";
 
@@ -106,6 +106,8 @@ export default function TimingSheet() {
           tl.fromTo(fin, { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5 }, i + 0.35);
         });
         tl.to({}, { duration: 0.4 }); // hold on the final lap before the pin lets go
+        // it holds on: stop part-way and the page settles on the finished sheet, or lets go
+        return pin && tl.scrollTrigger ? stick(tl.scrollTrigger, [0, 0.92, 1]) : undefined;
       };
 
       const mm = gsap.matchMedia();

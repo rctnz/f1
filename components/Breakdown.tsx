@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, MOTION, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION, ScrollTrigger, stick, useGSAP } from "@/lib/gsap";
 import { BASE, type Part } from "@/lib/data";
 import { anchors, hooks, isStageOn, onStageFrame, smooth, stage, whenStageReady } from "@/lib/stage";
 import s from "./Breakdown.module.css";
@@ -63,7 +63,8 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
         }
 
         const local = { lab: 0 }; // 0 → 1: leader lines drawn and labels in
-        const open = { i: -1, h: 0 }; // the label being pointed at, and how far its note has opened (px)
+        const open = { i: -1 }; // the label being pointed at
+        const hgt = labels.map(() => ({ h: 0 })); // how far each label's note is open (px)
         let rank: number[] = []; // rank[i] = place of label i in screen order, top first
         let LX = 0;
         let LY: number[] = [];
@@ -129,7 +130,8 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
             label.style.opacity = String(la);
             if (wide) {
               // labels under the open one step down to make room for its note
-              const ey = LY[i] + (open.i >= 0 && rank[i] > rank[open.i] ? open.h : 0);
+              let ey = LY[i];
+              for (let j = 0; j < n; j++) if (rank[j] < rank[i]) ey += hgt[j].h;
               const mx = Math.max(ax + 40, LX - 90);
               const seg0 = Math.hypot(mx - ax, ey - ay);
               const seg1 = LX - mx;
@@ -172,35 +174,38 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
           if (!wide || !isStageOn() || open.i === i) return;
           typing?.kill();
           const was = open.i;
-          if (was >= 0) {
-            if (notes[was]) notes[was]!.style.height = "0px";
-            if (typed[was]) typed[was]!.textContent = "";
-            labels[was].removeAttribute("data-open");
-          }
           open.i = i;
-          open.h = 0;
-          gsap.killTweensOf(open);
-          stage.focus = i >= 0 ? i : stage.focus; // keep the part named while it eases back
-          gsap.to(stage, { focusK: i >= 0 ? 1 : 0, duration: 0.3, ease: "expo.out", overwrite: "auto" });
-          if (i < 0) {
-            draw();
-            return;
+          const slide = (n: number, to: number, done?: () => void) =>
+            gsap.to(hgt[n], {
+              h: to,
+              duration: 0.34,
+              ease: "power3.out",
+              overwrite: true,
+              onUpdate: () => {
+                if (notes[n]) notes[n]!.style.height = `${hgt[n].h.toFixed(1)}px`;
+                draw();
+              },
+              onComplete: done,
+            });
+          // the one being left closes at the pace the new one opens, so the labels between them glide instead of jumping
+          if (was >= 0) {
+            labels[was].removeAttribute("data-open");
+            slide(was, 0, () => {
+              if (open.i !== was && typed[was]) typed[was]!.textContent = "";
+            });
           }
+          if (i >= 0) {
+            if (was >= 0 && was !== i) stage.focusK = 0; // the part named now starts from rest
+            stage.focus = i;
+          }
+          gsap.to(stage, { focusK: i >= 0 ? 1 : 0, duration: 0.34, ease: "power3.out", overwrite: "auto" });
+          if (i < 0) return;
           const note = notes[i];
           const out = typed[i];
           if (!note || !out) return;
           labels[i].setAttribute("data-open", "");
           const full = note.querySelector("[data-full]") as HTMLElement;
-          const target = full.offsetHeight;
-          gsap.to(open, {
-            h: target,
-            duration: 0.3,
-            ease: "expo.out",
-            onUpdate: () => {
-              note.style.height = `${open.h.toFixed(1)}px`;
-              draw();
-            },
-          });
+          slide(i, full.offsetHeight);
           const chars = graphemes(full.textContent ?? "");
           const count = { n: 0 };
           typing = gsap.to(count, {
@@ -259,6 +264,8 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
         tl.fromTo(local, { lab: 0 }, { lab: 1, duration: 0.32, onUpdate: draw }, 0.24);
         tl.to(local, { lab: 0, duration: 0.08, onUpdate: draw }, 0.84);
         tl.to(stage, { explode: 0, duration: 0.13 }, 0.87);
+        // it holds on: stop part-way and the page settles on the labelled view, or lets go
+        const unstick = stick(tl.scrollTrigger!, [0, 0.62, 1]);
 
         // the heading steps in as the section arrives
         const head = q("[data-head] > *");
@@ -281,7 +288,8 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
           list.removeEventListener("focusin", onOver);
           list.removeEventListener("focusout", onOut);
           typing?.kill();
-          gsap.killTweensOf(open);
+          gsap.killTweensOf(hgt);
+          unstick();
           lines.forEach((l) => l.remove());
           dots.forEach((d) => d.remove());
           stage.pit = stage.explode = stage.focusK = 0;
