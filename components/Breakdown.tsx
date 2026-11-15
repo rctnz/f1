@@ -18,6 +18,8 @@ type Props = {
   still: { file: string; width: number; height: number };
 };
 
+const TOUR0 = 0.36; // where in the pin the walk down the labels starts, and how much of the pin it takes
+const TOUR = 0.5;
 const WIDE = 900; // from here up there is room for a label column and leader lines
 const SVG = "http://www.w3.org/2000/svg";
 
@@ -31,7 +33,7 @@ function graphemes(text: string): string[] {
  * The car's exploded view, after the /breakdown skill: it comes apart group by group, then every part gets a
  * leader line and a numbered label in a column on the right, numbered top to bottom as they sit on screen.
  * The timeline is the scroll: the section pins, the parts lift, the lines draw, and it all goes back together
- * on the way out. Pointing at a label (or tabbing to it) types out what the pairing means and eases that part
+ * on the way out. While it is held, scrolling walks down the labels: each one in turn types out what its pairing means (the one before closes) and eases that part
  * a little further out. Without the 3D stage the labels are a plain list under a still.
  */
 export default function Breakdown({ id, kicker, title, intro, parts, still }: Props) {
@@ -62,7 +64,7 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
           dots.push(dot);
         }
 
-        const local = { lab: 0 }; // 0 → 1: leader lines drawn and labels in
+        const local = { lab: 0, tour: 0 }; // 0 → 1: leader lines drawn and labels in
         const open = { i: -1 }; // the label being pointed at
         const hgt = labels.map(() => ({ h: 0 })); // how far each label's note is open (px)
         let rank: number[] = []; // rank[i] = place of label i in screen order, top first
@@ -215,20 +217,6 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
             onComplete: () => labels[i].setAttribute("data-open", "done"),
           });
         };
-        const onOver = (e: Event) => {
-          const li = (e.target as HTMLElement).closest("[data-label]") as HTMLElement | null;
-          if (li) setOpen(labels.indexOf(li));
-        };
-        const onOut = (e: Event) => {
-          const to = (e as MouseEvent | FocusEvent).relatedTarget as HTMLElement | null;
-          if (!to || !to.closest || !to.closest("[data-label]")) setOpen(-1);
-        };
-        const list = q("[data-labels]")[0];
-        list.addEventListener("pointerover", onOver);
-        list.addEventListener("pointerout", onOut);
-        list.addEventListener("focusin", onOver);
-        list.addEventListener("focusout", onOut);
-
         const vh = () => window.innerHeight;
         // approach: while the section rises into place the camera comes round to the car
         gsap.fromTo(stage, { pit: 0 }, { pit: 1, ease: "none", scrollTrigger: { trigger: root, start: "top bottom", end: "top top", scrub: 0.25 } });
@@ -236,7 +224,7 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
         ScrollTrigger.create({
           trigger: root,
           start: "top bottom",
-          end: () => "+=" + Math.round(vh() * 4.6),
+          end: () => "+=" + Math.round(vh() * 6.4),
           onToggle: (self) => {
             near = self.isActive;
             if (!near) setOpen(-1);
@@ -250,19 +238,30 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
           scrollTrigger: {
             trigger: root,
             start: "top top",
-            end: () => "+=" + (isStageOn() ? Math.round(vh() * 2.6) : 0), // nothing comes apart without the stage, so no hold
+            end: () => "+=" + (isStageOn() ? Math.round(vh() * 4.4) : 0), // nothing comes apart without the stage, so no hold
             pin: true,
             scrub: 0.25,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
         });
-        tl.fromTo(stage, { explode: 0 }, { explode: 1, duration: 0.34 }, 0);
-        tl.fromTo(local, { lab: 0 }, { lab: 1, duration: 0.32, onUpdate: draw }, 0.24);
-        tl.to(local, { lab: 0, duration: 0.08, onUpdate: draw }, 0.84);
-        tl.to(stage, { explode: 0, duration: 0.13 }, 0.87);
+        tl.fromTo(stage, { explode: 0 }, { explode: 1, duration: 0.2 }, 0);
+        tl.fromTo(local, { lab: 0 }, { lab: 1, duration: 0.2, onUpdate: draw }, 0.14);
+        // then the scroll walks down the labels: each one's note opens in turn, and closes as the next one opens
+        tl.fromTo(
+          local,
+          { tour: 0 },
+          {
+            tour: n,
+            duration: TOUR,
+            onUpdate: () => setOpen(local.tour > 0.001 && local.tour < n - 0.001 ? rank.indexOf(Math.min(n - 1, Math.floor(local.tour))) : -1),
+          },
+          TOUR0,
+        );
+        tl.to(local, { lab: 0, duration: 0.06, onUpdate: draw }, 0.88);
+        tl.to(stage, { explode: 0, duration: 0.09 }, 0.91);
         // it holds on: stop part-way and the page settles on the labelled view, or lets go
-        const unstick = stick(tl.scrollTrigger!, [0, 0.62, 1]);
+        const unstick = stick(tl.scrollTrigger!, [0, ...labels.map((_, k) => TOUR0 + ((k + 0.5) / n) * TOUR), 1]);
 
         // the heading steps in as the section arrives
         const head = q("[data-head] > *");
@@ -280,10 +279,6 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
           offFrame();
           cancelReady();
           ScrollTrigger.removeEventListener("refresh", relayout);
-          list.removeEventListener("pointerover", onOver);
-          list.removeEventListener("pointerout", onOut);
-          list.removeEventListener("focusin", onOver);
-          list.removeEventListener("focusout", onOut);
           typing?.kill();
           gsap.killTweensOf(hgt);
           unstick();

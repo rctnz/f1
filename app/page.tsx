@@ -46,7 +46,7 @@ export default function Page() {
           id="machine"
           kicker={["A10", "EXPLODED VIEW"]}
           title="ผ่ารถ A10"
-          intro="หกชิ้นส่วน จับคู่กับหกสนามที่เรียน ชี้ที่ป้ายเพื่ออ่านว่าทำไม กดเพื่อไปยังสนามนั้น"
+          intro="หกชิ้นส่วน จับคู่กับหกสนามที่เรียน เลื่อนเพื่ออ่านทีละชิ้น กดที่ป้ายเพื่อไปยังสนามนั้น"
           parts={CAR_PARTS}
           still={{ file: "car-apart.webp", width: 1280, height: 867 }}
         />
