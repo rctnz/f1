@@ -34,6 +34,10 @@ export default function Page() {
       <a className="skip" href="#main">
         ข้ามไปที่เนื้อหา
       </a>
+      <p className="motionNote">
+        เครื่องนี้ปิดเอฟเฟกต์ภาพเคลื่อนไหวไว้ เว็บจึงแสดงแบบนิ่ง ไม่มีรถ 3D ถ้าอยากเห็นแบบเต็ม เปิดที่ Settings ของ Windows &gt; Accessibility &gt; Visual effects
+        &gt; Animation effects แล้วโหลดหน้านี้ใหม่
+      </p>
       <Stage />
       <ProgressBar />
       <Hero>

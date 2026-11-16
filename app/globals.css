@@ -104,3 +104,7 @@ main, footer { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; animation: none !important; }
 }
+
+/* shown only where the system asks for no motion (html.still): says why the page is flat and how to get the full one */
+.motionNote { display: none; }
+html.still .motionNote { display: block; position: relative; z-index: 5; margin: 0; padding: 10px var(--gutter); background: var(--p-yellow); color: #121418; font: 500 0.95rem/1.5 var(--font-body); text-align: center; }
