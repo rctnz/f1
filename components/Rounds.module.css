@@ -38,7 +38,10 @@
 .more { grid-area: more; list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .more[data-n="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .more[data-n="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.more li { aspect-ratio: 4 / 3; overflow: hidden; background: var(--p-wash); border: 1px solid var(--p-line); }
+.more li { min-width: 0; }
+.shot { margin: 0; display: grid; gap: 8px; }
+.shotImg { display: block; aspect-ratio: 4 / 3; overflow: hidden; background: var(--p-wash); border: 1px solid var(--p-line); }
+.shot figcaption { font: 500 0.9rem/1.4 var(--font-body); color: var(--p-muted); padding-left: 10px; border-left: 3px solid var(--p-red); }
 .more img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
 @media (min-width: 768px) {
   .grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-areas: "head head" "notes photo" "more more"; }

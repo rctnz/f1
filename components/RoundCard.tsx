@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { titleOf, type Round } from "@/lib/data";
+import { PHOTO_CAPTIONS, titleOf, type Round } from "@/lib/data";
 import PhotoSlot from "./PhotoSlot";
 import s from "./Rounds.module.css";
 
@@ -88,12 +88,22 @@ export default function RoundCard({
           <ul className={s.more} data-n={more.length}>
             {more.map((src, i) => (
               <li key={src}>
-                <img
-                  src={src}
-                  alt={`รูปกิจกรรม ROUND ${r.nn} รูปที่ ${i + 2}`}
-                  loading="lazy"
-                  decoding="async"
-                />
+                <figure className={s.shot}>
+                  <span className={s.shotImg}>
+                    <img
+                      src={src}
+                      alt={
+                        PHOTO_CAPTIONS[r.nn]?.[i] ||
+                        `รูปกิจกรรม ROUND ${r.nn} รูปที่ ${i + 2}`
+                      }
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
+                  {PHOTO_CAPTIONS[r.nn]?.[i] && (
+                    <figcaption>{PHOTO_CAPTIONS[r.nn][i]}</figcaption>
+                  )}
+                </figure>
               </li>
             ))}
           </ul>
