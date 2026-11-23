@@ -53,6 +53,9 @@ a.t { background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-
   :global(html[data-stage="on"]) .t { font-size: 1.12rem; }
   :global(html[data-stage="on"]) .s { font-size: 0.76rem; }
   :global(html[data-stage="on"]) .note { display: none; }
+  :global(html[data-stage="on"]) .phoneNote { display: block; min-height: 4.5em; margin: auto var(--gutter) 12px; padding-block: 4px; position: relative; z-index: 1; background: rgba(18, 20, 24, 0.9); font: 400 0.9rem/1.5 var(--font-body); color: var(--p-ink); }
+  :global(html[data-stage="on"]) .label[data-on] .t { color: var(--p-red); }
+  :global(html[data-stage="on"]) .pin[data-on] { background: #fff; color: var(--p-red-fill); }
   :global(html[data-stage="on"]) .pins { display: block; position: absolute; inset: 0; pointer-events: none; }
   :global(html[data-stage="on"]) .pin {
     position: absolute; left: 0; top: 0;
@@ -61,3 +64,6 @@ a.t { background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-
     opacity: 0;
   }
 }
+
+.phoneNote { display: none; }
+.phoneNote:empty { background: none !important; }

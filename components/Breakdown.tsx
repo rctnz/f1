@@ -49,6 +49,7 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
       mm.add(MOTION, () => {
         const labels = q("[data-label]") as HTMLElement[];
         const pins = q("[data-pin]") as HTMLElement[];
+        const phone = q("[data-phone-note]")[0] as HTMLElement | undefined;
         const notes = labels.map((l) => l.querySelector("[data-note]") as HTMLElement | null);
         const typed = labels.map((l) => l.querySelector("[data-type]") as HTMLElement | null);
         const svg = q("[data-leads]")[0] as unknown as SVGSVGElement;
@@ -173,8 +174,36 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
         // pointing at a label: its note opens and types itself out, and the part it names eases out of the car
         let typing: gsap.core.Tween | null = null;
         const setOpen = (i: number) => {
-          if (!wide || !isStageOn() || open.i === i) return;
+          if (!isStageOn() || open.i === i) return;
           typing?.kill();
+          if (!wide) {
+            // a phone: one line of words under the car, for the part the scroll is on
+            const was = open.i;
+            open.i = i;
+            if (was >= 0) {
+              labels[was].removeAttribute("data-on");
+              pins[was].removeAttribute("data-on");
+            }
+            stage.nudge.forEach((_, n) => gsap.to(stage.nudge, { [n]: n === i ? 1 : 0, duration: 0.4, ease: "power3.out", overwrite: "auto" }));
+            if (!phone) return;
+            if (i < 0) {
+              phone.textContent = "";
+              return;
+            }
+            labels[i].setAttribute("data-on", "");
+            pins[i].setAttribute("data-on", "");
+            const chars = graphemes(notes[i]?.querySelector("[data-full]")?.textContent ?? "");
+            const count = { n: 0 };
+            typing = gsap.to(count, {
+              n: chars.length,
+              duration: Math.min(1.2, chars.length * 0.014),
+              ease: "none",
+              onUpdate: () => {
+                phone.textContent = chars.slice(0, Math.round(count.n)).join("");
+              },
+            });
+            return;
+          }
           const was = open.i;
           open.i = i;
           const slide = (n: number, to: number, done?: () => void) =>
@@ -321,6 +350,7 @@ export default function Breakdown({ id, kicker, title, intro, parts, still }: Pr
           ))}
         </div>
 
+        <p className={`wrap ${s.phoneNote}`} data-phone-note aria-hidden="true" />
         <ol className={`wrap ${s.labels}`} data-labels>
           {parts.map((p, i) => (
             <li key={p.name} className={s.label} data-label>

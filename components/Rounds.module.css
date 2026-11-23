@@ -75,3 +75,8 @@
 .notes ol { list-style: decimal; padding-left: 1.5em; display: grid; gap: 4px; margin-top: 8px; }
 .notes ol li::marker { font-weight: 600; }
 .todoNote { border: 2px dashed #4a4f57; padding: 12px 16px; color: var(--p-muted); justify-self: start; min-width: min(100%, 32ch); }
+
+@media (max-width: 767.98px) {
+  .more, .more[data-n="4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .shot figcaption { font-size: 0.82rem; }
+}

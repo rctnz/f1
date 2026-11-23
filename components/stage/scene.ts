@@ -274,7 +274,7 @@ export async function createScene(
     const t = u * u * u * (u * (u * 6 - 15) + 10);
     const a = FOCUS[Math.max(0, k - 1)];
     const b = FOCUS[k];
-    const fx = lerp(a[0], b[0], t);
+    const fx = lerp(a[0], b[0], t) * (mobile ? 0.35 : 1); // a phone has no room to look off to one side
     const fy = lerp(a[1], b[1], t);
     const zoom = lerp(a[2], b[2], t) * (1 - (k > 1 ? 0.14 * Math.sin(Math.PI * t) : 0));
     const steer = lerp(STEER[Math.max(0, k - 1)], STEER[k], t);
