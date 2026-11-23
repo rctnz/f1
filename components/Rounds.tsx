@@ -44,7 +44,7 @@ function Car() {
   );
 }
 
-export default function Rounds({ photos }: { photos: Record<string, string | null> }) {
+export default function Rounds({ photos, more }: { photos: Record<string, string | null>; more: Record<string, string[]> }) {
   const ref = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -150,7 +150,7 @@ export default function Rounds({ photos }: { photos: Record<string, string | nul
           </aside>
           <div className={s.list} data-list>
             {ROUNDS.map((r) => (
-              <RoundCard key={r.n} r={r} photo={photos[`week-${r.nn}`] ?? null} />
+              <RoundCard key={r.n} r={r} photo={photos[`week-${r.nn}`] ?? null} more={more[`week-${r.nn}`] ?? []} />
             ))}
           </div>
         </div>

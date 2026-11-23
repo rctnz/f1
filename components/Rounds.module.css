@@ -33,7 +33,12 @@
 }
 .head { grid-area: head; display: grid; gap: 16px; justify-items: start; min-width: 0; }
 .notes { grid-area: notes; display: grid; gap: 12px; max-width: 62ch; font-size: 1.02rem; color: #d6dade; min-width: 0; }
-.photo { grid-area: photo; width: 100%; }
+.photo { grid-area: photo; width: 100%; min-width: 0; }
+/* the rest of the week's pictures, small, under the main one */
+.more { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.more[data-n="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.more li { aspect-ratio: 4 / 3; overflow: hidden; background: var(--p-wash); border: 1px solid var(--p-line); }
+.more img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
 @media (min-width: 768px) {
   .grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-areas: "head head" "notes photo"; }
 }

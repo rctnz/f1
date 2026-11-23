@@ -1,8 +1,17 @@
+/* eslint-disable @next/next/no-img-element */
 import { titleOf, type Round } from "@/lib/data";
 import PhotoSlot from "./PhotoSlot";
 import s from "./Rounds.module.css";
 
-export default function RoundCard({ r, photo }: { r: Round; photo: string | null }) {
+export default function RoundCard({
+  r,
+  photo,
+  more,
+}: {
+  r: Round;
+  photo: string | null;
+  more: string[];
+}) {
   return (
     <article
       className={`${s.round} ${r.n % 2 === 0 ? s.flip : ""}`}
@@ -26,15 +35,25 @@ export default function RoundCard({ r, photo }: { r: Round; photo: string | null
           </p>
           <div className={s.titleMask}>
             {/* หัวข้อ Week 8: แก้ที่ lib/data.ts */}
-            <h3 className={`${s.title} ${r.title ? "" : "todo"}`} id={`round-${r.nn}-t`} data-title>
+            <h3
+              className={`${s.title} ${r.title ? "" : "todo"}`}
+              id={`round-${r.nn}-t`}
+              data-title
+            >
               {titleOf(r)}
             </h3>
           </div>
-          {r.subtitle ? <p className={s.sub}>{r.subtitle}</p> : !r.title && <p className={`${s.sub} todo`}>(ใส่หัวข้อรอง)</p>}
+          {r.subtitle ? (
+            <p className={s.sub}>{r.subtitle}</p>
+          ) : (
+            !r.title && <p className={`${s.sub} todo`}>(ใส่หัวข้อรอง)</p>
+          )}
           <p className={s.strip} data-strip>
             <span>RND {r.nn}</span>
             <span>{r.code}</span>
-            <span className={r.status === "FIN" ? s.fin : s.next}>{r.status}</span>
+            <span className={r.status === "FIN" ? s.fin : s.next}>
+              {r.status}
+            </span>
           </p>
         </div>
         <div className={s.notes}>
@@ -57,14 +76,29 @@ export default function RoundCard({ r, photo }: { r: Round; photo: string | null
             )
           )}
         </div>
-        <PhotoSlot
-          className={s.photo}
-          id={`week-${r.nn}`}
-          src={photo}
-          label={`WEEK ${r.nn}`}
-          alt={`รูปกิจกรรม ROUND ${r.nn}: ${titleOf(r)}`}
-          shape="week"
-        />
+        <div className={s.photo}>
+          <PhotoSlot
+            id={`week-${r.nn}`}
+            src={photo}
+            label={`WEEK ${r.nn}`}
+            alt={`รูปกิจกรรม ROUND ${r.nn}: ${titleOf(r)}`}
+            shape="week"
+          />
+          {more.length > 0 && (
+            <ul className={s.more} data-n={Math.min(more.length, 3)}>
+              {more.map((src, i) => (
+                <li key={src}>
+                  <img
+                    src={src}
+                    alt={`รูปกิจกรรม ROUND ${r.nn} รูปที่ ${i + 2}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </article>
   );

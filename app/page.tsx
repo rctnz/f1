@@ -25,9 +25,20 @@ function findPhoto(id: string): string | null {
   return null;
 }
 
+/** the rest of a week's pictures: public/photos/week-NN-2.jpg, -3, ... shown small under the main one */
+function findMore(id: string): string[] {
+  const out: string[] = [];
+  for (let k = 2; k <= 12; k++) {
+    const src = findPhoto(`${id}-${k}`);
+    if (src) out.push(src);
+  }
+  return out;
+}
+
 export default function Page() {
   const ids = ["cover", ...ROUNDS.map((r) => `week-${r.nn}`), ...DRIVERS.map((d) => `driver-${d.no}`)];
   const photos = Object.fromEntries(ids.map((id) => [id, findPhoto(id)]));
+  const more = Object.fromEntries(ROUNDS.map((r) => [`week-${r.nn}`, findMore(`week-${r.nn}`)]));
 
   return (
     <>
@@ -57,7 +68,7 @@ export default function Page() {
         <Handover from="poster" to="tele" clear />
         <TimingSheet />
         <Handover from="tele" to="poster" />
-        <Rounds photos={photos} />
+        <Rounds photos={photos} more={more} />
         <DriverTags photos={photos} />
       </main>
       <Handover from="poster" to="tele" />
