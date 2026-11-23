@@ -76,29 +76,28 @@ export default function RoundCard({
             )
           )}
         </div>
-        <div className={s.photo}>
-          <PhotoSlot
-            id={`week-${r.nn}`}
-            src={photo}
-            label={`WEEK ${r.nn}`}
-            alt={`รูปกิจกรรม ROUND ${r.nn}: ${titleOf(r)}`}
-            shape="week"
-          />
-          {more.length > 0 && (
-            <ul className={s.more} data-n={Math.min(more.length, 3)}>
-              {more.map((src, i) => (
-                <li key={src}>
-                  <img
-                    src={src}
-                    alt={`รูปกิจกรรม ROUND ${r.nn} รูปที่ ${i + 2}`}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <PhotoSlot
+          className={s.photo}
+          id={`week-${r.nn}`}
+          src={photo}
+          label={`WEEK ${r.nn}`}
+          alt={`รูปกิจกรรม ROUND ${r.nn}: ${titleOf(r)}`}
+          shape="week"
+        />
+        {more.length > 0 && (
+          <ul className={s.more} data-n={more.length}>
+            {more.map((src, i) => (
+              <li key={src}>
+                <img
+                  src={src}
+                  alt={`รูปกิจกรรม ROUND ${r.nn} รูปที่ ${i + 2}`}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </article>
   );
