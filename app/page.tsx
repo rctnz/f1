@@ -5,6 +5,7 @@ import Hero from "@/components/Hero";
 import Season from "@/components/Season";
 import Calendar from "@/components/Calendar";
 import Breakdown from "@/components/Breakdown";
+import Lightbox from "@/components/Lightbox";
 import Stage from "@/components/stage/Stage";
 import Handover from "@/components/Handover";
 import TimingSheet from "@/components/TimingSheet";
@@ -71,6 +72,7 @@ export default function Page() {
         <Rounds photos={photos} more={more} />
         <DriverTags photos={photos} />
       </main>
+      <Lightbox />
       <Handover from="poster" to="tele" />
       <Footer />
       <SmoothScroll />

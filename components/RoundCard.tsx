@@ -97,7 +97,7 @@ export default function RoundCard({
                         `รูปกิจกรรม ROUND ${r.nn} รูปที่ ${i + 2}`
                       }
                       loading="lazy"
-                      decoding="async"
+                      decoding="async" data-zoom={PHOTO_CAPTIONS[r.nn]?.[i] ?? ""} tabIndex={0}
                     />
                   </span>
                   {PHOTO_CAPTIONS[r.nn]?.[i] && (

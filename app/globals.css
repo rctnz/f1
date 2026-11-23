@@ -108,3 +108,8 @@ main, footer { position: relative; z-index: 1; }
 /* shown only where the system asks for no motion (html.still): says why the page is flat and how to get the full one */
 .motionNote { display: none; }
 html.still .motionNote { display: block; position: relative; z-index: 5; margin: 0; padding: 10px var(--gutter); background: var(--p-yellow); color: #121418; font: 500 0.95rem/1.5 var(--font-body); text-align: center; }
+
+/* any picture that opens large on click */
+img[data-zoom] { cursor: zoom-in; transition: transform 320ms var(--ease); }
+img[data-zoom]:hover { transform: scale(1.04); }
+img[data-zoom]:focus-visible { outline: 3px solid var(--p-yellow); outline-offset: -3px; }
